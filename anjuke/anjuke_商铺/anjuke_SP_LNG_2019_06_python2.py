@@ -1,53 +1,16 @@
 # encoding: utf-8
-import datetime
-
+import json
 import random
-import re
-
+import sys
 import time
 
+import re
 import redis
 import requests
 from lxml import etree
 
 # date = str(datetime.datetime.today().date())
-agents = [
-    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; AcooBrowser; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
-    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; Acoo Browser; SLCC1; .NET CLR 2.0.50727; Media Center PC 5.0; .NET CLR 3.0.04506)",
-    "Mozilla/4.0 (compatible; MSIE 7.0; AOL 9.5; AOLBuild 4337.35; Windows NT 5.1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
-    "Mozilla/5.0 (Windows; U; MSIE 9.0; Windows NT 9.0; en-US)",
-    "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Win64; x64; Trident/5.0; .NET CLR 3.5.30729; .NET CLR 3.0.30729; .NET CLR 2.0.50727; Media Center PC 6.0)",
-    "Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0; WOW64; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; .NET CLR 1.0.3705; .NET CLR 1.1.4322)",
-    "Mozilla/4.0 (compatible; MSIE 7.0b; Windows NT 5.2; .NET CLR 1.1.4322; .NET CLR 2.0.50727; InfoPath.2; .NET CLR 3.0.04506.30)",
-    "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN) AppleWebKit/523.15 (KHTML, like Gecko, Safari/419.3) Arora/0.3 (Change: 287 c9dfb30)",
-    "Mozilla/5.0 (X11; U; Linux; en-US) AppleWebKit/527+ (KHTML, like Gecko, Safari/419.3) Arora/0.6",
-    "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.2pre) Gecko/20070215 K-Ninja/2.1.1",
-    "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9) Gecko/20080705 Firefox/3.0 Kapiko/3.0",
-    "Mozilla/5.0 (X11; Linux i686; U;) Gecko/20070322 Kazehakase/0.4.5",
-    "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.8) Gecko Fedora/1.9.0.8-1.fc10 Kazehakase/0.5.6",
-    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/535.20 (KHTML, like Gecko) Chrome/19.0.1036.7 Safari/535.20",
-    "Opera/9.80 (Macintosh; Intel Mac OS X 10.6.8; U; fr) Presto/2.9.168 Version/11.52",
-    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.11 (KHTML, like Gecko) Chrome/20.0.1132.11 TaoBrowser/2.0 Safari/536.11",
-    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/21.0.1180.71 Safari/537.1 LBBROWSER",
-    "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E; LBBROWSER)",
-    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; QQDownload 732; .NET4.0C; .NET4.0E; LBBROWSER)",
-    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.84 Safari/535.11 LBBROWSER",
-    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E)",
-    "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E; QQBrowser/7.0.3698.400)",
-    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; QQDownload 732; .NET4.0C; .NET4.0E)",
-    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; SV1; QQDownload 732; .NET4.0C; .NET4.0E; 360SE)",
-    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; QQDownload 732; .NET4.0C; .NET4.0E)",
-    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E)",
-    "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/21.0.1180.89 Safari/537.1",
-    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/21.0.1180.89 Safari/537.1",
-    "Mozilla/5.0 (iPad; U; CPU OS 4_2_1 like Mac OS X; zh-cn) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8C148 Safari/6533.18.5",
-    "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:2.0b13pre) Gecko/20110307 Firefox/4.0b13pre",
-    "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:16.0) Gecko/20100101 Firefox/16.0",
-    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11",
-    "Mozilla/5.0 (X11; U; Linux x86_64; zh-CN; rv:1.9.2.10) Gecko/20100922 Ubuntu/10.10 (maverick) Firefox/3.6.10",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
-]
+
 
 area_url = ['https://anshan.sp.anjuke.com/zu/p%s', 'https://anyang.sp.anjuke.com/zu/p%s',
             'https://anqing.sp.anjuke.com/zu/p%s', 'https://ankang.sp.anjuke.com/zu/p%s',
@@ -436,6 +399,9 @@ area_url = ['https://anshan.sp.anjuke.com/zu/p%s', 'https://anyang.sp.anjuke.com
             'https://xuancheng.sp.anjuke.com/zu/p%s', 'https://bazhong.sp.anjuke.com/zu/p%s']
 
 
+# area_url = ['https://shanghai.sp.anjuke.com/zu/p%s', 'https://shenzhen.sp.anjuke.com/zu/p%s', ]
+
+
 def get_all_urls():
     urls = []
     while area_url:
@@ -449,44 +415,28 @@ def get_all_urls():
 class AnJuKe():
 
     def __init__(self):
-        # super(AnJuKe, self).__init__()
-        self._TOPIC_ID = ""  # todo add
         self.REDIS_KEY = 'anjuke_SP_url'
-        self.headers = [
-            {
-                'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-                'accept-encoding': 'gzip, deflate, br',
-                'accept-language': 'zh-CN,zh;q=0.9',
-                'cache-control': 'max-age=0',
-
-                'cookie': '__xsptplus8=8.1.1561689896.1561689896.1%234%7C%7C%7C%7C%7C%23%23J1DoPJTzmwPhXctLYhZs9k8XtntTTDa1%23;new_uv=1;twe=2;wmda_uuid=2a37bac27a6e273a26ef70802e463856;lps=http%3A%2F%2Fwww.anjuke.com%2F%7C;_ga=GA1.2.1311046641.1561689896;_gat=1;wmda_new_uuid=1;aQQ_ajkguid=F06A99D5-9E45-8111-1E40-E78BA97CD54F;sessid=264457CE-8577-82DF-B594-8102A537FED5;new_session=1;_gid=GA1.2.63436421.1561689896;__xsptplusUT_8=1;58tj_uuid=c58a88ab-f3cf-4a36-80df-47dd8b5199ea;wmda_visited_projects=%3B6289197098934;wmda_session_id_6289197098934=1561689896398-bbb1a714-ba9b-add6;als=0;init_refer=;',
-                'referer': 'https://chengdu.anjuke.com/',
-                'upgrade-insecure-requests': '1',
-                'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
-            },
-            {
-                'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-                'accept-encoding': 'gzip, deflate, br',
-                'accept-language': 'zh-CN,zh;q=0.9',
-                'cache-control': 'max-age=0',
-                'cookie': '__xsptplus8=8.1.1561711979.1561711979.1%234%7C%7C%7C%7C%7C%23%23n1t7wuteeUk7YDeOWiOgYJ9jj95Ug82Z%23;new_uv=1;wmda_new_uuid=1;twe=2;wmda_uuid=1570a9a466264341297d2e3b155f4f92;lps=http%3A%2F%2Fwww.anjuke.com%2F%7C;_ga=GA1.2.1850849162.1561711980;als=0;__xsptplusUT_8=1;aQQ_ajkguid=DA9F8A62-6738-6604-7D23-704D7887A46C;sessid=2BCF022B-9EBA-AADB-76D4-6E2DFC9436D1;new_session=1;_gid=GA1.2.640210244.1561711980;58tj_uuid=ca78a726-1f03-4884-8f38-b8cecec51fdc;wmda_visited_projects=%3B6289197098934;wmda_session_id_6289197098934=1561711979831-cc3a601b-bd11-4d0a;_gat=1;init_refer=;',
-                'referer': 'https://cd.sp.anjuke.com/zu/?from=navigation',
-                'upgrade-insecure-requests': '1',
-                'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
-            },
-            {
-                'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-                'accept-encoding': 'gzip, deflate, br',
-                'accept-language': 'zh-CN,zh;q=0.9',
-                'cache-control': 'max-age=0',
-                'cookie': '__xsptplus8=8.1.1561711900.1561711900.1%234%7C%7C%7C%7C%7C%23%23Ce9BjW3ttbF7QyyqeQ2f-zYXY7sKP_fa%23;new_uv=1;wmda_new_uuid=1;twe=2;wmda_uuid=ee824d3c9ed03ce5f537ce1e516afae8;lps=http%3A%2F%2Fwww.anjuke.com%2F%7C;_ga=GA1.2.1762055006.1561711900;als=0;__xsptplusUT_8=1;aQQ_ajkguid=53592F19-658B-4586-E7A7-EB0D98E15A09;sessid=734CB556-DF81-4B2B-8601-A40A891619DA;new_session=1;_gid=GA1.2.585365713.1561711900;58tj_uuid=12d8c612-576c-4c9a-9a45-3fcecf6a95a3;wmda_visited_projects=%3B6289197098934;wmda_session_id_6289197098934=1561711900219-e3941101-5b6c-6891;_gat=1;init_refer=;',
-                'referer': 'https://cd.sp.anjuke.com/zu/?from=navigation',
-                'upgrade-insecure-requests': '1',
-                'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
-            },
-
-        ]
+        self.headers = [{
+            "User-Agent": "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN) AppleWebKit/523.15 (KHTML, like Gecko, Safari/419.3) Arora/0.3 (Change: 287 c9dfb30)"
+        }, ]
         self.r = redis.StrictRedis(host='127.0.0.1', port=6388, password="admin")
+        self.proxies = []
+        self.proxy = {}
+        # self.r = redis.StrictRedis(host='127.0.0.1', port=6379)
+
+    def get_proxy(self):
+        if not self.proxies:
+            resp = requests.get(
+                "http://webapi.http.zhimacangku.com/getlongip?num=1&type=2&port=1&pack=2257&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&lc=").json()
+            if isinstance(resp, dict) and resp.get("code") != 0:
+                # self.logger.info("ProxyError:{}".format(resp.get("msg")))
+                print "ProxyError:"
+                print resp.get("msg")
+                sys.exit()
+            self.proxies = [{"http": "http://" + str(proxy.get("ip")) + ":" + str(proxy.get("port"))} for proxy in
+                            resp.get("data")]
+        print self.proxies, len(self.proxies)
+        return random.choice(self.proxies)
 
     def _save_urls_to_redis(self):
         """
@@ -503,14 +453,14 @@ class AnJuKe():
             # self.logger.info(u"安居客商铺：url写入完成")
             print u"安居客商铺：url写入完成"
 
-    def __get(self, url, headers):
+    def _get(self, url, headers, num=0):
         """
-
         :param url:
-        :param session:
         :param headers:
         :return:
         """
+        self.proxy = self.get_proxy()
+        print "change ip pre request "
         h = {}
         if headers:
             for k, v in headers.items():
@@ -518,27 +468,34 @@ class AnJuKe():
         if self.headers:
             for k, v in random.choice(self.headers).items():
                 h[k] = v
-            resp = requests.get(url, headers=h, allow_redirects=False)
+            try:
+                resp = requests.get(url, headers=h, allow_redirects=False, proxies=self.proxy, timeout=10)
+            except:
+                return
             if resp.status_code == 200:
                 return resp
+            elif resp.status_code == 302:
+                # self.logger.info("status_code 302,change ip")
+                # self.proxies.remove(self.proxy)
+                self.proxy = self.get_proxy()
+                return self._get(url, headers)
             else:
                 # self.logger.error(u"{}请求失败:{}".format(url, e.args))
                 print u"请求失败:{}".format(url)
-                time.sleep(10)
 
     def _paras_list_page_item(self, resp):
         """
-
         :param resp:
         :return:
         """
+        # self.logger.info("list page ok")
         if resp:
             html = etree.HTML(resp.text)
             return html.xpath("//div[@id='list-content']/div[@class='list-item']")
         else:
             # self.logger.error(u"--------列表页返回错误----------{}".format(resp.text))
             print (u"--------列表页返回错误----------{}".format(resp.text))
-            time.sleep(10)
+            self.delay()
 
     def _save_data(self, url, data):
         """
@@ -552,11 +509,11 @@ class AnJuKe():
 
     def _paras_detail_page(self, items):
         """
-        
+        解析详情页
         :return:
         """
         for item in items:
-            time.sleep(random.randint(1, 3))
+            self.delay()
             data = {}
             try:
                 floor = item.xpath(".//dl/dd/span[2]/text()")[0]
@@ -570,11 +527,12 @@ class AnJuKe():
             if "1" in floor or u"一" in floor:
                 # 字段:抓取时间.数据来源(安居客/中原地产)/网页url/具体地址/经纬度/租金/租期/面积
                 data["url"] = page_url  # 详情url
-                time.sleep(random.randint(2, 7))
-                resp_detail = self.__get(url=page_url, headers=random.choice(self.headers))
+                self.delay()
+                resp_detail = self._get(url=page_url, headers=random.choice(self.headers))
+                print "detail page ok"
                 if not resp_detail:
                     print "detail page error"
-                    time.sleep(10)
+                    self.delay()
                     continue
                 html = etree.HTML(resp_detail.text)
                 try:
@@ -598,8 +556,8 @@ class AnJuKe():
                     data["address"] = html.xpath("//div[@id='fy_info']//span[@class='desc addresscommu']/text()")[0][
                                       1:-1].strip().replace(" ", "")  # 地址
 
-                    # self._save_data(url=page_url, data=data)
-                    print(data)
+                    self._save_data(url=page_url, data=data)
+                    print json.dumps(data, skipkeys=True, ensure_ascii=False)
                 except Exception as e:
                     # self.logger.error(u"安居客商铺：数据获取失败{}:{} ---------".format(e.args, page_url))
                     print u"安居客商铺：数据获取失败{}:{} ---------".format(e.args, page_url)
@@ -612,14 +570,26 @@ class AnJuKe():
                 else:
                     continue
 
+    @staticmethod
+    def delay():
+        """
+        用于延时
+        :return:
+        """
+        time.sleep(random.randint(1, 3))
+
     def main(self):
         self._save_urls_to_redis()
-        # if self.user_redis.exists(self.REDIS_KEY):
+        # if self.user_redis.exists(self.REDIS_KEY): # todo
         if self.r.exists(self.REDIS_KEY):
-            while self.r.exists(self.REDIS_KEY):
+            counts = self.r.scard(self.REDIS_KEY)
+            # counts = self.user_redis.scard(self.REDIS_KEY) # todo
+            counts = 50 if counts >= 50 else counts  # todo
+            for i in range(counts):
                 url = self.r.spop(self.REDIS_KEY).decode('utf-8')
-                time.sleep(random.randint(1, 3))
-                resp = self.__get(url=url, headers=random.choice(self.headers), )
+                # url = self.user_redis.spop(self.REDIS_KEY).decode('utf-8') # todo
+                self.delay()
+                resp = self._get(url=url, headers=random.choice(self.headers), )
                 if not resp:
                     continue
                 if u"没有结果，请换个搜索词或试试筛选吧!" in resp.text:
@@ -628,6 +598,7 @@ class AnJuKe():
                     try:
                         for i in range(index, 59):
                             self.r.srem(self.REDIS_KEY, url1[0] + 'zu/p{}'.format(str(i)))
+                            # self.user_redis.srem(self.REDIS_KEY, url1[0] + 'zu/p{}'.format(str(i)))
                             print(url1[0] + 'zu/p{}'.format(str(i)))
                     except:
                         continue

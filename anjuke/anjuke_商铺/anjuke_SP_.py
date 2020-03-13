@@ -10,6 +10,7 @@ import redis
 import requests
 from lxml import etree
 
+# date = str(datetime.datetime.today().date())
 
 area_url = ['https://anshan.sp.anjuke.com/zu/p%s', 'https://anyang.sp.anjuke.com/zu/p%s',
             'https://anqing.sp.anjuke.com/zu/p%s', 'https://ankang.sp.anjuke.com/zu/p%s',
@@ -559,7 +560,7 @@ class AnJuKe():
                     data["address"] = html.xpath("//div[@id='fy_info']//span[@class='desc addresscommu']/text()")[0][
                                       1:-1].strip().replace(" ", "")  # 地址
 
-                    self._save_data(url=page_url, data=data)
+                    # self._save_data(url=page_url, data=data)
                     print(data)
                 except Exception as e:
                     # self.logger.error(u"安居客商铺：数据获取失败{}:{} ---------".format(e.args, page_url))

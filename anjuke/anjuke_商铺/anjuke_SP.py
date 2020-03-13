@@ -1,9 +1,9 @@
 # encoding: utf-8
 import datetime
 import random
-import re
 import time
 
+import re
 import redis
 import requests
 from lxml import etree
@@ -104,7 +104,7 @@ if not r.exists("all_urls"):
         r.lpush("all_urls", url)
 
 print(urls, len(urls))
-time.sleep(10000)
+# time.sleep(10000)
 
 with open("./anjukeSP{}.json".format(time.time()), mode="a+", encoding="utf-8") as fp:
     while r.exists("all_urls"):

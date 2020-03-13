@@ -1,5 +1,3 @@
-# encoding:utf-8
-# python3
 import queue
 import random
 import re
@@ -29,6 +27,10 @@ def ip_pool():
             time.sleep(3)
     # print(ips)
 
+
+'''
+
+'''
 
 cookies = [{
     'sessid': '19FCF1EE-7F25-F8AB-DAB1-A09605CE28C4', 'new_session': '1',
@@ -131,7 +133,7 @@ def demo():
         i1 = info_html.xpath("//dd[@class='dd-column'][1]/text()")  # 开发商
         j = info_html.xpath("//dd[@class='dd-column'][2]/text()")  # 物业公司
         k = info_html.xpath("//dd[@class='dd-column'][3]/text()")  # 所属商圈
-        print(a, b, c, d, e, f, g, h, i1, j, k,)
+        print(a, b, c, d, e, f, g, h, i1, j, k, )
         local = re.search(string=resp_local.text, pattern='lat : "(.+?)",\W+lng : "(.+?)"')
         if local:
             position = "{},{}".format(local[1], local[2])
@@ -143,7 +145,6 @@ def demo():
               position, "url:", url)
         print(i)
         i += 1
-        # todo ----------------
         # class CrawlerThread(threading.Thread):
         #     def __init__(self, name):
         #         super(CrawlerThread, self).__init__()

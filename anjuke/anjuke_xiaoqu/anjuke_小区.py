@@ -15,10 +15,9 @@ r = redis.Redis(host="47.105.54.129", port=6388, db=0, password="admin")
 print(datetime.date.month)
 
 
-
 def get_ip():
-    ip_url = 'http://webapi.http.zhimacangku.com/getip?num=60&type=1&pro=&city=0&yys=0&port=11&pack=28170&ts=0&ys=0&cs=0&lb=1&sb=0&pb=45&mr=2&regions='
-    # ip_url = 'http://api.xdaili.cn/xdaili-api//privateProxy/applyStaticProxy?spiderId=bcf4b1d29b374d10a6a1d14fd08e516f&returnType=1&count=5'
+    # ip_url = 'http://webapi.http.zhimacangku.com/getip?num=60&type=1&pro=&city=0&yys=0&port=11&pack=28170&ts=0&ys=0&cs=0&lb=1&sb=0&pb=45&mr=2&regions='
+    ip_url = 'http://webapi.http.zhimacangku.com/getip?num=10&type=1&pro=&city=0&yys=0&port=1&pack=43054&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions='
     ip_list = requests.get(url=ip_url).text.split()
     print(ip_list)
     return ip_list
