@@ -104,9 +104,19 @@ class AnJuKe:
 
     @staticmethod
     def instance_session(index_url=None):
+        headers = {
+            "accept": "application/json, text/javascript, */*; q=0.01",
+            "accept-encoding": "gzip, deflate, br",
+            "accept-language": "zh-CN,zh;q=0.9",
+            "cache-control": "no-cache",
+            "pragma": "no-cache",
+            "referer": "https://chengdu.anjuke.com/map/sale/?from=navigation",
+            "x-requested-with": "XMLHttpRequest",
+        }
         cookies = read_cookies()
         session = CommSession(verify=True).session(index_url=index_url, cookies=cookies) if index_url else CommSession(
             verify=True).session()
+        session.headers.update(headers)
         return session
 
     def get_detail(self, url):
@@ -116,21 +126,24 @@ class AnJuKe:
         url = 'https://chengdu.anjuke.com/v3/ajax/map/sale/3671/prop_list/?room_num=-1&price_id=-1&area_id=-1&floor=-1&orientation=-1&is_two_years=0&is_school=0&is_metro=0&order_id=0&p={}&zoom=12&lat=30.229893_31.079865&lng=103.719333_104.443727&kw=&et=4dc0c0&ib=1&bst=pem152'
         for page in range(50):
             list_url = copy.copy(url).format(page)
-            print 'list page {}'.format(url)
+            print 'list page {}'.format(list_url)
             data = self._get(list_url).json()
             print json.dumps(data, encoding='u8', ensure_ascii=False)
             items = data.get('val').get('props')
             for item in items:
-                print item
+                write_cookies(self.session.cookies)
                 if not user_redis.sismember(redis_key_detail_id, item.get('id')):
                     detail = copy.copy(self.detail_url).format(_id=item.get('id'))
+                    print detail
+                    detail = 'https://chengdu.anjuke.com/v3/ajax/map/658/detail?str_prop_id=A1989578005&is_auction=0&is_list=1&is_pricing_top=0&click_url=&et=cc3173&ib=1&bst=pem383'
                     print 'detail url {}'.format(detail)
+                    print json.dumps(item, encoding='u8', ensure_ascii=False)
                     item.update(self._get(detail).json().get('val'))
-                    print item
                     user_redis.sadd(redis_key_detail_id, item.get('id'))
                     item['_md5'] = self._md5(item)
+                    print json.dumps(item, encoding='u8', ensure_ascii=False)
                     col.insert(item)
-        write_cookies(self.session.cookies)
+                    write_cookies(self.session.cookies)
 
     @staticmethod
     def _md5(data):
