@@ -2,11 +2,23 @@ redis_config:
   host: 47.105.54.129
   port: 6388
   password: admin
+
 mongo_config:
   host: 47.105.54.129
   posrt: 27017
   database: shixin
+  user: chean
   password: scc57295729
+  collection: CnGold
+
 site_config:
   host: .cngold.com.cn
   index: http://www.cngold.com.cn
+
+parse_config:
+  title: string(//title)
+  publish_time: string(//div[@class='new_tit_ch']/span[2])
+  source: substring-after(//div[@class='new_tit_ch']/span[1]/text(),'：')
+  sitename: string('中金网')
+  source_type: string('新闻')
+  author: string('')

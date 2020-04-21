@@ -44,7 +44,7 @@ def coding(response):
     if charset_re.findall(response.text):
         response.encoding = charset_re.findall(response.text)[0]
     elif pragma_re.findall(response.text):
-        response.encoding = charset_re.findall(response.text)[0]
+        response.encoding = pragma_re.findall(response.text)[0]
     else:
         temp = chardet.detect(response.content)
         response.encoding = temp['encoding']
@@ -128,12 +128,17 @@ def check_next_page(response: requests.Response, redis, xpath='//*[contains(@tit
     :return:
     """
     html = content2tree(coding(response))
-    result = html.xpath(xpath)
-    if result:
+    r = html.xpath(xpath)
+    if r:
         current_url: str = response.url
-        next_url = current_url.replace('com.cn', 'com.cn{}'.format(result[0]))
+        if current_url.endswith('.html'):
+            next_url = current_url.strip('/').rsplit('/', 1)[0] + '/' + (r[0] if not r[0].startswith('/') else r[0])
+        else:
+            next_url = current_url.rstrip('/') + r[0]
         res = redis.rpush('list_page', next_url)
         print('next page add {},{}'.format(res, next_url))
+    else:
+        print(response.url, r)
 
 
 if __name__ == '__main__':

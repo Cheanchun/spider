@@ -4,9 +4,10 @@ import re
 from html import unescape
 
 import numpy as np
-import util
+
+from IntelligentContentParse import util
+from IntelligentContentParse.page import Response
 from lxml.html import fromstring, etree
-from page import Response
 
 DELETE_TAG = ["style", "script", "link", "video", "iframe", "source", "picture", "header", "blockquote", "head",
               "input"]
@@ -25,12 +26,11 @@ class IntelligentParse:
             以最后score的值进行判断是否为正文文本
         """
 
-    def __init__(self, url, method="GET", custom_delete_class=None):
-        self.url = url
-        self.method = method
+    def __init__(self, html=None, custom_delete_class=None):
         self.custome_delete_clss = custom_delete_class
         self.math_value_info = {}
         self.element = None
+        self.html = html
 
     def intelligent_main(self):
         # 1.进行页面的预处理
@@ -55,13 +55,13 @@ class IntelligentParse:
 
         # 3.进行score的计算
         html = self.math_treat_score()  # 4
-        print(html)
+        return html
 
     # 1
     def pretreat(self):
         # html = requests.get(url=self.url).content.decode("utf-8")
-        html = Response().response(url=self.url, method=self.method)
-        html = re.sub('</?br.*?>', '', html)
+        # html = Response().response(url=self.url, method=self.method)
+        html = re.sub('</?br.*?>', '', self.html)
         element = fromstring(html)
         etree.strip_elements(element, *DELETE_TAG)
         # 优化---------->

@@ -1,0 +1,16 @@
+经营异常名录列入公告
+http://www.gsxt.gov.cn/affiche-query-area-info-paperall.html?noticeType=11&areaid=100000&noticeTitle=&regOrg=
+经营异常名录移出公告
+http://www.gsxt.gov.cn/affiche-query-area-info-paperall.html?noticeType=12&areaid=100000&noticeTitle=&regOrg=
+经营异常名录期满三年提醒
+http://www.gsxt.gov.cn/affiche-query-area-info-paperall.html?noticeType=13&areaid=100000&noticeTitle=&regOrg=
+严重违法失信企业列入公告
+http://www.gsxt.gov.cn/affiche-query-area-info-paperall.html?noticeType=21&areaid=100000&noticeTitle=&regOrg=
+严重违法失信企业移出公告
+http://www.gsxt.gov.cn/affiche-query-area-info-paperall.html?noticeType=22&areaid=100000&noticeTitle=&regOrg=
+司法股权冻结公告
+http://www.gsxt.gov.cn/affiche-query-area-info-paperall.html?noticeType=61&areaid=100000&noticeTitle=&regOrg=
+司法股权变更公告
+http://www.gsxt.gov.cn/affiche-query-area-info-paperall.html?noticeType=62&areaid=100000&noticeTitle=&regOrg=
+简易注销公告
+http://www.gsxt.gov.cn/affiche-query-area-info-paperall.html?noticeType=10&areaid=100000&noticeTitle=&regOrg=
