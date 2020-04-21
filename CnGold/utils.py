@@ -1,13 +1,12 @@
 # -*- coding=utf-8 -*-
-
+import functools
 import re
 
 import chardet
 import requests
+import yaml
 from lxml import etree
 from lxml.etree import XMLSyntaxError
-import yaml
-
 
 charset_re = re.compile(r'<meta.*?charset=["\']*(.+?)["\'>]', flags=re.I)
 pragma_re = re.compile(r'<meta.*?content=["\']*;?charset=(.+?)["\'>]', flags=re.I)
@@ -18,14 +17,11 @@ default_headers = {
 
 
 def get_yaml_data(yaml_file):
-    # 打开yaml文件
     print("***获取yaml文件数据***")
     file = open(yaml_file, 'r', encoding="utf-8")
     file_data = file.read()
     file.close()
-    print("***转化yaml数据为字典或列表***")
     data = yaml.load(file_data, Loader=yaml.Loader)
-    print(data)
     print("类型：", type(data))
     return data
 
@@ -91,21 +87,67 @@ def url_filter(url: str, current_url: str = 'http://cngold.com.cn/'):
     """
 
     :param url:
+    :param current_url:
     :return:
     """
 
     if url.startswith('http') and 'cngold.com.cn' in url:
+        if 'www.cngold.com.cn/dealer' in url:
+            return None
         if re.search(r'http://[a-z]*?.cngold.com.cn/$', url):
             return url, 1
         if re.search(r'http://www.cngold.com.cn/[a-z]+?/$', url):
             return url, 1
-        if current_url in url:
+        if re.search(r'http://[a-z]+\.cngold\.com\.cn[/a-z]*?/20[a-z0-9]+\.html', url):
             return url, 2
+
+
+def check_redis_list_elem(func):
+    @functools.wraps(func)
+    def wrapper(user_redis, key, value, *args, **kwargs):
+        func(user_redis, key, value, 'add')
+        func(user_redis, key, value, 'remove')
+
+    return wrapper
+
+
+@check_redis_list_elem
+def add_list_no_repeat(user_redis, key, value, option, index=''):
+    print(user_redis, key, value, option, index)
 
 
 def format_url():
     pass
 
 
-def check_next_page(response):
-    pass
+def check_next_page(response: requests.Response, redis, xpath='//*[contains(@title,"下一页")]/@href'):
+    """
+
+    :param response:
+    :param xpath:
+    :return:
+    """
+    html = content2tree(coding(response))
+    result = html.xpath(xpath)
+    if result:
+        current_url: str = response.url
+        next_url = current_url.replace('com.cn', 'com.cn{}'.format(result[0]))
+        res = redis.rpush('list_page', next_url)
+        print('next page add {},{}'.format(res, next_url))
+
+
+if __name__ == '__main__':
+    add_list_no_repeat(user_redis='1', key='2', value='3')
+# urls = [
+#     'http://www.cngold.com.cn/hangye/20200426d1703n343988513.html',
+#     'http://gold.cngold.com.cn/20200426d1715n343988236.html',
+#     'http://forex.cngold.com.cn/20200426d1710n343979058.html',
+#     'http://forex.cngold.com.cn/20200426d1711n343987533.html',
+#     'http://gold.cngold.com.cn/20200426d11141n343988893.html',
+# ]
+# for url in urls:
+#     if url_filter(url=url):
+#         print(url)
+#     else:
+#         print('match fail:{}'.format(url))
+#     # print(url)
