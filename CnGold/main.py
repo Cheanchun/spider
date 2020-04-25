@@ -1,21 +1,25 @@
 # -*- coding:utf-8 -*-
 import random
-import re
 import time
 import traceback
 
-import chardet
-import requests
-from lxml import etree
-from lxml.etree import XMLSyntaxError
+import redis
+import yaml
 
-from CnGold.utils import CommSession, url_parse
+import requests
+
+from CnGold.utils import CommSession, url_parse, get_yaml_data
+
+config = get_yaml_data('./config.yml')
+
+print(config)
 
 
 class CnGoldSpider(object):
     def __init__(self):
         self.index_url = 'http://www.cngold.com.cn/'
         self.session = self.instance_session()
+        self.user_redis = redis.Redis(**config.get('redis_config'))
 
     def instance_session(self):
         return CommSession(verify=True).session(self.index_url)
@@ -43,7 +47,15 @@ class CnGoldSpider(object):
         raise traceback.format_exc()
 
     def main(self):
-        print(url_parse(self._get(self.index_url)))
+        if not self.user_redis.exists('first_level'):
+            self.user_redis.sadd('first_level', self.index_url)
+        for url, _type in url_parse(self._get(self.user_redis.spop('first_level'))):
+            if _type == 1:
+                self.user_redis.sadd('second_level', url)
+            elif _type == 2:
+                self.user_redis.sadd('third_level', url)
+            else:
+                print('other')
 
 
 if __name__ == '__main__':
