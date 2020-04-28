@@ -1,6 +1,8 @@
 # -*- coding=utf-8 -*-
 import functools
+import math
 import re
+import time
 
 import chardet
 import requests
@@ -100,27 +102,28 @@ def url_filter(url: str, current_url: str = 'http://cngold.com.cn/'):
             return url, 1
         if re.search(r'http://[a-z]+\.cngold\.com\.cn[/a-z]*?/20[a-z0-9]+\.html', url):
             return url, 2
+    elif 'zhanhui' in current_url and url.startswith('n_20'):
+        url = current_url.split('zhanhui')[0] + 'zhanhui/' + url
+        return url, 2
 
 
-def check_redis_list_elem(func):
+def run_time(func):
     @functools.wraps(func)
-    def wrapper(user_redis, key, value, *args, **kwargs):
-        func(user_redis, key, value, 'add')
-        func(user_redis, key, value, 'remove')
+    def wrapper(self, *args, **kwargs):
+        start = time.time()
+        res = func(self, *args, **kwargs)
+        end = time.time()
+        print('run time:{}s'.format(math.ceil(end - start)))
+        return res
 
     return wrapper
-
-
-@check_redis_list_elem
-def add_list_no_repeat(user_redis, key, value, option, index=''):
-    print(user_redis, key, value, option, index)
 
 
 def format_url():
     pass
 
 
-def check_next_page(response: requests.Response, redis, xpath='//*[contains(@title,"下一页")]/@href'):
+def check_next_page(response: requests.Response, redis, xpath='//*[contains(@title,"下一页")]'):
     """
 
     :param response:
@@ -129,12 +132,31 @@ def check_next_page(response: requests.Response, redis, xpath='//*[contains(@tit
     """
     html = content2tree(coding(response))
     r = html.xpath(xpath)
+    current_url: str = response.url.strip('/')
     if r:
-        current_url: str = response.url
-        if current_url.endswith('.html'):
-            next_url = current_url.strip('/').rsplit('/', 1)[0] + '/' + (r[0] if not r[0].startswith('/') else r[0])
+        r = r[0].xpath('./@href')
+        if (r[0].startswith('/') and 'com.cn' in current_url) and current_url.endswith('.html'):
+            next_url = current_url.rsplit('/', 1)[0] + (r[0] if not r[0].startswith('/') else r[0])
+            res = redis.rpush('list_page', next_url)
+            print('next page add {},{}'.format(res, next_url))
+        elif not r[0].startswith('/'):
+            next_url = current_url.rsplit('/', 1)[0] + '/' + r[0]
+            res = redis.rpush('list_page', next_url)
+            print('next page add {},{}'.format(res, next_url))
+        elif current_url.endswith('com.cn') and r[0].startswith('/'):
+            next_url = current_url + r[0]
+            res = redis.rpush('list_page', next_url)
+            print('next page add {},{}'.format(res, next_url))
+        elif r[0].startswith('/'):
+            next_url = current_url.rsplit('/', 1)[0] + '/' + r[0]
+            res = redis.rpush('list_page', next_url)
+            print('next page add {},{}'.format(res, next_url))
+    elif 'zhanhui' in current_url:
+        if current_url.endswith('zhanhui'):
+            next_url = current_url + '/index_2.html'
         else:
-            next_url = current_url.rstrip('/') + r[0]
+            next_url = 'http://www.cngold.com.cn/zhanhui/index_{}.html'.format(
+                int(re.search('\d+', current_url).group()) + 1)
         res = redis.rpush('list_page', next_url)
         print('next page add {},{}'.format(res, next_url))
     else:

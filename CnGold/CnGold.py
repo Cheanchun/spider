@@ -2,13 +2,12 @@
 import random
 import time
 import traceback
-from multiprocessing import Process
 
 import pymongo
 import redis
 import requests
 from IntelligentContentParse.intelligent_parse import IntelligentParse
-from utils import CommSession, url_parse, get_yaml_data, coding, content2tree
+from utils import CommSession, url_parse, get_yaml_data, coding, content2tree, check_next_page, run_time
 
 config = get_yaml_data('./config.yml')
 print(config)
@@ -25,7 +24,7 @@ def cnn_mongo(mongo_config):
 db = cnn_mongo(config.get('mongo_config'))
 
 
-class CnGoldProduct(Process):
+class CnGoldProduct(object):
     def __init__(self):
         super(CnGoldProduct, self).__init__()
         self.index_url = config.get('site_config').get('index')
@@ -57,40 +56,43 @@ class CnGoldProduct(Process):
                 return resp
         raise traceback.format_exc()
 
+    @run_time
     def main(self):
         if not self.user_redis.exists('list_page'):
             self.user_redis.rpush('list_page', self.index_url)
-        while True:
-            current_url = self.user_redis.lpop('list_page')
-            if current_url:
-                print('current url:{}'.format(current_url))
+        current_url = self.user_redis.lpop('list_page')
+        # current_url = 'http://gold.cngold.com.cn'
+        if current_url:
+            print('current url:{}'.format(current_url))
+            try:
                 self.user_redis.lrem('list_page', count=1, value=current_url)
+                self.user_redis.sadd('crawled_url', current_url)
                 resp = self._get(current_url)
-                # check_next_page(resp, self.user_redis)
+                check_next_page(resp, self.user_redis)
                 for url, _type in url_parse(resp):
-                    self.user_redis.sadd('crawled_url', current_url)
                     if not self.user_redis.sismember('crawled_url', url):
                         if _type == 1 and not self.user_redis.sismember('crawled_url', url):
-                            print('list_page_remove', self.user_redis.lrem('list_page', count=0, value=url))
-                            print('list_page_add', self.user_redis.lpush('list_page', url))
+                            print('list_page_remove', self.user_redis.lrem('list_page', count=0, value=url), url)
+                            print('list_page_add', self.user_redis.lpush('list_page', url), url)
                         elif _type == 2 and not self.user_redis.sismember('crawled_url', url):
-                            print('detail_page_remove', self.user_redis.lrem('detail_page', count=0, value=url))
-                            print('detail_page_add', self.user_redis.rpush('detail_page', url))
+                            print('detail_page_remove', self.user_redis.lrem('detail_page', count=0, value=url), url)
+                            print('detail_page_add', self.user_redis.rpush('detail_page', url), url)
                         elif self.user_redis.sismember('crawled_url', url):
                             print('url crawled:{}'.format(url))
                         else:
                             print('other url:{}'.format(url))
-            else:
-                print('product sleep 30s...')
-                time.sleep(30)
+            except Exception:
+                print(traceback.format_exc())
 
     def start(self):
         print('product start...')
-        self.main()
-        print('product end...')
+        while True:
+            self.main()
+            print('product end...sleep 30s,waiting next running')
+            time.sleep(30)
 
 
-class CnGoldCustomer(Process):
+class CnGoldCustomer(object):
     def __init__(self):
         super(CnGoldCustomer, self).__init__()
 
@@ -133,7 +135,7 @@ class CnGoldCustomer(Process):
 
     def save_data(self, data):
         db['CnGold'].insert(data)
-        print(data.get(''),data.get('url'))
+        print(data.get(''), data.get('url'))
         print('=' * 100)
 
     def queue_handle(self):

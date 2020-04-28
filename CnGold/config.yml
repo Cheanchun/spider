@@ -13,7 +13,7 @@ mongo_config:
 
 site_config:
   host: .cngold.com.cn
-  index: http://www.cngold.com.cn
+  index: http://www.cngold.com.cn/corp/help_map.html
 
 parse_config:
   title: string(//title)
