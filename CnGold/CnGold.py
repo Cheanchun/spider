@@ -12,7 +12,7 @@ from utils import CommSession, url_parse, get_yaml_data, coding, content2tree, c
 config = get_yaml_data('./config.yml')
 print(config)
 user_redis = redis.Redis(**config.get('redis_config'))
-
+user_redis.delete()
 
 def cnn_mongo(mongo_config):
     cnn = pymongo.MongoClient(host=mongo_config.get('host'), port=mongo_config.get('port'))
@@ -88,8 +88,8 @@ class CnGoldProduct(object):
         print('product start...')
         while True:
             self.main()
-            print('product end...sleep 30s,waiting next running')
-            time.sleep(30)
+            print('product end...sleep 5s,waiting next running')
+            time.sleep(5)
 
 
 class CnGoldCustomer(object):
@@ -158,8 +158,8 @@ class CnGoldCustomer(object):
                 self.check_response(resp)
                 self.parse_detail(resp)
             else:
-                print('customer sleep 30s...')
-                time.sleep(30)
+                print('customer sleep 5s...')
+                time.sleep(5)
 
     def start(self):
         print('customer start...')
