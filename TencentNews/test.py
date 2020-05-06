@@ -739,7 +739,7 @@ urls_ = [
 ]
 if __name__ == '__main__':
     for url in urls_:
-        # resp = requests.get(url)
-        # print(json.loads(resp.text[resp.text.index('{'):resp.text.rindex('}') + 1]))
-        parse_parm(url)
-        print('-' * 100)
+        resp = requests.get(url)
+        print(json.loads(resp.text[resp.text.index('{'):resp.text.rindex('}') + 1]))
+        # parse_parm(url)
+        # print('-' * 100)

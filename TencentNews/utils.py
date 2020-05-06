@@ -1,5 +1,6 @@
 # -*- coding=utf-8 -*-
 import functools
+import json
 import math
 import re
 import time
@@ -7,8 +8,6 @@ import time
 import chardet
 import requests
 import yaml
-from lxml import etree
-from lxml.etree import XMLSyntaxError
 
 charset_re = re.compile(r'<meta.*?charset=["\']*(.+?)["\'>]', flags=re.I)
 pragma_re = re.compile(r'<meta.*?content=["\']*;?charset=(.+?)["\'>]', flags=re.I)
@@ -53,56 +52,32 @@ def coding(response):
     return response
 
 
-def content2tree(response: requests.Response):
-    """
-
-    :param response:
-    :return:
-    """
-    if isinstance(response, requests.Response):
-        return etree.HTML(response.text)
-    else:
-        try:
-            return etree.HTML(response)
-        except XMLSyntaxError as error:
-            print(error)
-            return response
-
-
 def url_parse(response: requests.Response) -> set:
     """
     解析url 并且 格式化url
     :param response:
     :return: urls  -> list
     """
-    current_url = response.url
-    urls = content2tree(response.text).xpath('//a/@href')
-    temp_url = set()
+    json_str = coding(response).text
+    json_dict = json.loads(json_str[json_str.index('{'):json_str.rindex('}') + 1])
+    urls = set()
+    for data in json_dict.get('data'):
+        urls.add(data.get('vurl'))
     print(urls)
-    for url in urls:
-        url = url_filter(url, current_url)
-        if url:
-            temp_url.add(url)
-    return temp_url
+    return urls
 
 
-def url_filter(url: str, current_url: str = 'http://cngold.com.cn/'):
-    """
-
-    :param url:
-    :param current_url:
-    :return:
-    """
-
-    if url.startswith('http') and 'new.qq.com' in url:
-        if re.search(r'http(s)?://new.qq.com/[a-z]+?/[a-z_]+?/$', url):
-            return url, 1
-        if re.search(r'https://new.qq.com/omn/[a-z]+/\d+', url):
-            return url, 1
-        if re.search(r'http(s)?://new.qq.com/.+?/.+?/20[0-9a-zA-Z]+', url):
-            return url, 2
-        print('match fail:{}'.format(url))
-
+def next_page(url: bytes, redis, redis_key, page=5):
+    url = url.decode('u8')
+    res = re.search(r'(page=\d+)', url)
+    if res:
+        page_str = res.group()
+        page_num = page_str.split('=')[1]
+        if int(page_num) < page:
+            url = url.replace(page_str, 'page={}'.format(int(page_num) + 1))
+            redis.rpush(redis_key, url)
+    else:
+        print('next page format error:{}'.format(url))
 
 
 def run_time(func):
@@ -117,62 +92,5 @@ def run_time(func):
     return wrapper
 
 
-def format_url():
-    pass
-
-
-def check_next_page(response: requests.Response, redis, xpath='//*[contains(@title,"下一页")]'):
-    """
-
-    :param response:
-    :param xpath:
-    :return:
-    """
-    html = content2tree(coding(response))
-    r = html.xpath(xpath)
-    current_url: str = response.url.strip('/')
-    if r:
-        r = r[0].xpath('./@href')
-        if (r[0].startswith('/') and 'com.cn' in current_url) and current_url.endswith('.html'):
-            next_url = current_url.rsplit('/', 1)[0] + (r[0] if not r[0].startswith('/') else r[0])
-            res = redis.rpush('list_page', next_url)
-            print('next page add {},{}'.format(res, next_url))
-        elif not r[0].startswith('/'):
-            next_url = current_url.rsplit('/', 1)[0] + '/' + r[0]
-            res = redis.rpush('list_page', next_url)
-            print('next page add {},{}'.format(res, next_url))
-        elif current_url.endswith('com.cn') and r[0].startswith('/'):
-            next_url = current_url + r[0]
-            res = redis.rpush('list_page', next_url)
-            print('next page add {},{}'.format(res, next_url))
-        elif r[0].startswith('/'):
-            next_url = current_url.rsplit('/', 1)[0] + '/' + r[0]
-            res = redis.rpush('list_page', next_url)
-            print('next page add {},{}'.format(res, next_url))
-    elif 'zhanhui' in current_url:
-        if current_url.endswith('zhanhui'):
-            next_url = current_url + '/index_2.html'
-        else:
-            next_url = 'http://www.cngold.com.cn/zhanhui/index_{}.html'.format(
-                int(re.search('\d+', current_url).group()) + 1)
-        res = redis.rpush('list_page', next_url)
-        print('next page add {},{}'.format(res, next_url))
-    else:
-        print(response.url, r)
-
-
 if __name__ == '__main__':
-    add_list_no_repeat(user_redis='1', key='2', value='3')
-# urls = [
-#     'http://www.cngold.com.cn/hangye/20200426d1703n343988513.html',
-#     'http://gold.cngold.com.cn/20200426d1715n343988236.html',
-#     'http://forex.cngold.com.cn/20200426d1710n343979058.html',
-#     'http://forex.cngold.com.cn/20200426d1711n343987533.html',
-#     'http://gold.cngold.com.cn/20200426d11141n343988893.html',
-# ]
-# for url in urls:
-#     if url_filter(url=url):
-#         print(url)
-#     else:
-#         print('match fail:{}'.format(url))
-#     # print(url)
+    pass
