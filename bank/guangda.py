@@ -1,5 +1,5 @@
 # coding:utf-8
-
+import datetime
 import json
 import random
 import re
@@ -87,22 +87,30 @@ class GuangDa():
     @staticmethod
     def next_open_date(html, data):
         next_open_date = ''
-        jzxxykfr1 = html.xpath("//*[@id='jzxxykfr1']/@value")  # 下一开放日
-        jzxkfr1 = html.xpath("//*[@id='jzxkfr1']/@value")  # 开放日
-        qchkfr1 = html.xpath("//*[@id='qchkfr1']/@value")
-        if jzxxykfr1 and u'年' in jzxxykfr1[0]:
+        date_str = '%Y年%m月%d日'
+        today = datetime.datetime.now().date()
+        jzxxykfr1 = html.xpath("//*[@id='jzxxykfr1']/@value")  # 开放日_1
+        jzxkfr1 = html.xpath("//*[@id='jzxkfr1']/@value")  # 开放日_2
+        qchkfr1 = html.xpath("//*[@id='qchkfr1']/@value")  # 开放日_3
+        kfskfr1 = html.xpath("//*[@id='kfskfr1']/@value")  # 开放日_4
+        kfsxykfr1 = html.xpath("//*[@id='kfsxykfr1']/@value")  # 开放日_5
+        if jzxxykfr1 and u'年' in jzxxykfr1[0] and datetime.datetime.strptime(jzxxykfr1[0], date_str).date() >= today:
             next_open_date = jzxxykfr1[0]
-        elif jzxkfr1 and '年' in jzxkfr1[0]:
+        elif jzxkfr1 and '年' in jzxkfr1[0] and datetime.datetime.strptime(jzxkfr1[0], date_str).date() >= today:
             next_open_date = jzxkfr1[0]
-        elif qchkfr1 and u'年' in qchkfr1[0]:
+        elif qchkfr1 and u'年' in qchkfr1[0] and datetime.datetime.strptime(qchkfr1[0], date_str).date() >= today:
             next_open_date = qchkfr1[0]
+        elif kfskfr1 and u'年' in kfskfr1[0] and datetime.datetime.strptime(kfskfr1[0], date_str).date() >= today:
+            next_open_date = kfskfr1[0]
+        elif kfsxykfr1 and u'年' in kfsxykfr1[0] and datetime.datetime.strptime(kfsxykfr1[0], date_str).date() >= today:
+            next_open_date = kfsxykfr1[0]
         data['next_open_date'] = next_open_date.replace(u'年', u'-').replace(u'月', '-').replace(u'日', u'')
 
     def parse_detail(self, data):
         # print data.get('url')
-        url = 'http://www.cebbank.com/site/gryw/yglc/lccpsj/yxyg87/60810894/index.html'
-        # html = self.content2tree(self._coding(self._get(data.get('url'), method='get')))
-        html = self.content2tree(self._coding(self._get(url, method='get')))
+        # url = 'http://www.cebbank.com/site/gryw/yglc/lccpsj/yxl94/29834128/index.html'
+        html = self.content2tree(self._coding(self._get(data.get('url'), method='get')))
+        # html = self.content2tree(self._coding(self._get(url, method='get')))
         self.products_nature_format(html, data)
         data['product_type'] = ''
         file_url = ''.join(html.xpath('//div[2]/div[@class]//p/a/@href'))
