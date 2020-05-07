@@ -8,6 +8,8 @@ import time
 import chardet
 import requests
 import yaml
+from lxml import etree
+from lxml.etree import XMLSyntaxError
 
 charset_re = re.compile(r'<meta.*?charset=["\']*(.+?)["\'>]', flags=re.I)
 pragma_re = re.compile(r'<meta.*?content=["\']*;?charset=(.+?)["\'>]', flags=re.I)
@@ -25,6 +27,22 @@ def get_yaml_data(yaml_file):
     data = yaml.load(file_data, Loader=yaml.Loader)
     print("类型：", type(data))
     return data
+
+
+def content2tree(response: requests.Response):
+    """
+
+    :param response:
+    :return:
+    """
+    if isinstance(response, requests.Response):
+        return etree.HTML(response.text)
+    else:
+        try:
+            return etree.HTML(response)
+        except XMLSyntaxError as error:
+            print(error)
+            return response
 
 
 class CommSession(object):
@@ -62,7 +80,7 @@ def url_parse(response: requests.Response) -> set:
     json_dict = json.loads(json_str[json_str.index('{'):json_str.rindex('}') + 1])
     urls = set()
     for data in json_dict.get('data'):
-        urls.add(data.get('vurl'))
+        urls.add(data.get('vurl', '') + '|' + data.get('source', '') + '|' + data.get('publish_time', ''))
     print(urls)
     return urls
 

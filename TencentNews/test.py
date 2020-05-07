@@ -738,8 +738,9 @@ urls_ = [
     "https://pacaio.match.qq.com/irs/rcd?cid=146&token=49cbb2154853ef1a74ff4e53723372ce&ext=5g&page=1&expIds=20200430A0G2ER|20200430A0GRPY|20200430A0GMFD|20200430A0DPDC|20200430A0CRF5|20200430A0AG9C|20200430A02K4K|20200430A028L3|20200429A0ODUW|20200428A0JFBU|20200430A0A0AJ|20200430A0BLBT|20200430A0BTQG|20200430A09JT6|20200430A0627B|20200430A04IES|20200429A0KAPS|20200428A0NQFT|20200428A0OZSH|20200428A0TNYC&callback=__jp5",
 ]
 if __name__ == '__main__':
-    for url in urls_:
-        resp = requests.get(url)
-        print(json.loads(resp.text[resp.text.index('{'):resp.text.rindex('}') + 1]))
+    # for url in urls_:
+    #     resp = requests.get(url)
+    #     print(json.loads(resp.text[resp.text.index('{'):resp.text.rindex('}') + 1]))
         # parse_parm(url)
         # print('-' * 100)
+    a = [1,2,3,4,5,6,6]

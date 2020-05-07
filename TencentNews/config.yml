@@ -25,12 +25,13 @@ site_config:
 
 parse_config:
   title: string(//title)
-  publish_time: string(//div[@class='new_tit_ch']/span[2])
-  source: substring-after(//div[@class='new_tit_ch']/span[1]/text(),'：')
-  sitename: string('腾讯新闻')
-  source_type: string('新闻')
-  author: string('')
+  #  publish_time: string(//div[@class='new_tit_ch']/span[2])
+  #  source: substring-after(//div[@class='new_tit_ch']/span[1]/text(),'：')
+  sitename: concat('腾讯新闻','')
+  source_type: concat('新闻','')
+  author: concat('','')
 
+# 导航url
 nav_url:
   [
     "https://pacaio.match.qq.com/irs/rcd?cid=137&token=d0f13d594edfc180f5bf6b845456f3ea&id=&ext=top&page=1&expIds=20200430V047IZ|20200430A02TK6|20200430A004V9|20200430V00UQM|20200430A04BIN|20200429A0TXSA|20200430000029|20200427003251|20200429A0SJCX&callback=__jp6",
@@ -67,3 +68,5 @@ nav_url:
     "https://pacaio.match.qq.com/irs/rcd?cid=146&token=49cbb2154853ef1a74ff4e53723372ce&ext=food&page=1&expIds=20200430A0C1P0|20200430A0CD82|20200430A0C7YB|20200430A0C8GQ|20200430A0D83E|20200430A0D80M|20200430A0D7W0|20200430A0D7RH|20200430A0D9UF|20200430A0D9VJ|20200430A07NN0|20200428A0BYTA|20200430A05V4S|20200430A061I4|20200429A0RGYB|20200429A0JGK4|20200430A02WPZ|20200430A06I1A|20200430A02LHD|20200429A0RYL4&callback=__jp4",
     "https://pacaio.match.qq.com/irs/rcd?cid=146&token=49cbb2154853ef1a74ff4e53723372ce&ext=5g&page=1&expIds=20200430A0G2ER|20200430A0GRPY|20200430A0GMFD|20200430A0DPDC|20200430A0CRF5|20200430A0AG9C|20200430A02K4K|20200430A028L3|20200429A0ODUW|20200428A0JFBU|20200430A0A0AJ|20200430A0BLBT|20200430A0BTQG|20200430A09JT6|20200430A0627B|20200430A04IES|20200429A0KAPS|20200428A0NQFT|20200428A0OZSH|20200428A0TNYC&callback=__jp5",
   ]
+
+max_page: 50  # 详情页抓取数
