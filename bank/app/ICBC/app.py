@@ -5,6 +5,8 @@
 @Desc:
 @Todo
 """
+import json
+
 import requests
 
 URL = 'https://mywap2.icbc.com.cn/ICBCWAPBank/servlet/WapAPIReqServlet'
@@ -50,8 +52,17 @@ post_data = {
 
 
 def api_app():
-    # session = CommSession(headers=HEADERS, verify=True).session()
-    print(requests.post(URL, data=post_data, headers=HEADERS, verify=True).text)
+    # session = CommSession(headers=HEADERS, verify=True).session()\
+    with open('icbc.txt', mode='a+', encoding='u8') as fp:
+        for page in range(1, 25):
+            post_data['pageNumber'] = str(page)
+            post_data['toPage'] = str(page + 1)
+            content = requests.post(URL, data=post_data, headers=HEADERS, verify=True).text
+            content = content.strip().replace('\'', '"')
+            content = json.loads(content, encoding='u8')
+            content = json.dumps(content, ensure_ascii=False)
+            fp.write(content + '\n')
+            print(content)
 
 
 if __name__ == '__main__':
