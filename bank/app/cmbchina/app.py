@@ -6,9 +6,10 @@
 @Todo
 """
 import json
+import re
 import time
 
-from bank.utils.utils import CommSession
+from bank.utils.utils import CommSession, content2tree
 
 headers = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
@@ -44,6 +45,8 @@ param = {
     "lastRipCod": "",
     "%24RequestMode%24": "",
 }
+a = CommSession(verify=False, headers=headers)
+session = a.session()
 
 
 def test(code=None, page_no=1):
@@ -53,14 +56,14 @@ def test(code=None, page_no=1):
         param['ListNo'] = page_no
         param['TimTmp'] = str(time.time() * 1000)
     print(headers)
-    a = CommSession(verify=False, headers=headers)
-    session = a.session()
     data_json = session.get(index, params=param, ).json()
     # last_rip_code = data_json.get('$SysResult$').get('$Content$').get('DataSource').get('lastRipCod')
     # print('last_rip_code:{}'.format(last_rip_code))
     data_list = data_json.get('$SysResult$').get('$Content$').get('DataSource').get('PrdList')
     last_code = data_list[-1].get('RipCod') if data_list else ""
     for data in data_list:
+        get_rate_data(data.get('RipCod'), data=data)
+        production_introduce(data.get('RipCod'), data)
         fp.write(json.dumps(data, ensure_ascii=False) + '\n')
         print(f'data save finish:{data}')
     return last_code
@@ -74,15 +77,67 @@ def get_data():
         page += 1
 
 
+def get_rate_data(ripcode: str, data: json):
+    time.sleep(1)
+    post_data = {
+        "Command": "DOQUERYRATEFMN",
+        "RipCod": ripcode,
+        "RipTyp": "C",
+        "RgnTyp": "D",
+        "PrfTyp": "I",
+        "ClientNo": "5e83c23dfe75405f916ce46d18625aa1",
+        "RatTag": "B",
+        "$RequestMode$": "1",
+    }
+    url = 'https://mobile.cmbchina.com/IEntrustFinance/FinanceProduct/FP_AjaxQueryRate.aspx'
+    rate_data = session.post(url=url, data=post_data).json().get('$SysResult$').get('$Content$').get('RatData')
+    data['RatData'] = rate_data
+
+
+def production_introduce(code, data):
+    """
+
+    :return:
+    """
+    url = 'https://mobile.cmbchina.com/IEntrustFinance/FinanceProduct/FP_PrdInstruction.aspx?version=8.2.0'
+    post_data = {
+        "ClientNo": "efd497b334e64b50b9973ccbc32cddce",
+        "Code": code,
+        "offSal": "N",
+        "brdFuc": "N",
+        "behavior_entryid": "lcb002004",
+        "behavior_prodcode": "8199",
+        "_urlrefer": "https://mobile.cmbchina.com/IEntrustFinance/FinanceProduct/FP_FinanceDetail.aspx?version=8.2.0",
+    }
+    headers_detail = {
+        "Host": "mobile.cmbchina.com",
+        "DeviceType": "D",
+        "PBClient": "cmbpb-iphone",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "zh-cn",
+        "ClientVersion": "8.2.0",
+        "Accept-Encoding": "br, gzip, deflate",
+        "SID": "o2kb/HIYJK5+4GlwPT+cMIbsEes=",
+        "Origin": "null",
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MPBank/8.2.0 iPhone/12.2 Scale/3.0 AID/kwKtuBYeYza5fbSMBj3L1sFhjPc= SID/o2kb/HIYJK5+4GlwPT+cMIbsEes= WebView/WKWebView APPTag/1.0(N;44;321)",
+        "Content-Length": "240",
+        "Connection": "keep-alive",
+        "SystemVersion": "12.2",
+        "Content-Type": "application/x-www-form-urlencoded",
+        "AID": "kwKtuBYeYza5fbSMBj3L1sFhjPc=",
+        "Cookie": "pgv_pvi=4890748928",
+    }
+    resp = session.post(url=url, headers=headers_detail, data=post_data)
+    html = content2tree(resp.text)
+    pdf_url = html.xpath('string(//div[@id="ctl00_cphBody_info_PDF"]/@onclick)')
+    res = re.search(r'(http.+[doc|pdf|docx])\'', pdf_url)
+    if res:
+        data['file_url'] = res.group(1)
+    else:
+        pass
+    # print(resp.text)
+
+
 if __name__ == '__main__':
-    with open('./demo.txt', mode='a+', encoding='u8') as fp:
+    with open('./CMBChina{}.txt'.format(int(time.time())), mode='a+', encoding='u8') as fp:
         get_data()
-    #     with open('./zhaoshang.txt', mode='a+', encoding='u8') as wp:
-    #         content = fp.readline()
-    #         while content:
-    #             data = json.loads(content, encoding='u8')
-    #             data_list = data.get('$SysResult$').get('$Content$').get('DataSource').get('PrdList')
-    #             for i in data_list:
-    #                 wp.write(json.dumps(i, ensure_ascii=False) + '\n')
-    #                 print(i)
-    #             content = fp.readline()

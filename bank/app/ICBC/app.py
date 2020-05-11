@@ -60,9 +60,19 @@ def api_app():
             content = requests.post(URL, data=post_data, headers=HEADERS, verify=True).text
             content = content.strip().replace('\'', '"')
             content = json.loads(content, encoding='u8')
-            content = json.dumps(content, ensure_ascii=False)
-            fp.write(content + '\n')
-            print(content)
+            for data in content.get('opdata').get('jsonData'):
+                get_production_introduce(data)
+                content = json.dumps(data, ensure_ascii=False)
+                fp.write(content + '\n')
+                print(content)
+
+
+def get_production_introduce(data):
+    p_id = data.get('productId')
+    if p_id:
+        data['file_url'] = 'https://image.mybank.icbc.com.cn/picture/Perfinancingproduct/{}.pdf'.format(p_id)
+    else:
+        data['file_url'] = ''
 
 
 if __name__ == '__main__':
