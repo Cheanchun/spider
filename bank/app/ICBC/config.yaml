@@ -1,0 +1,22 @@
+post_data:
+  fCode: clientNew_FinancePurchaseNoSessionOp
+  pageMark: 25  # 重点参数
+  pageNumber: 1  # 翻页开始 超过25 返回空json
+  toPage: 2  # 翻页截止
+  sortTypetemp:
+  orderTypetemp:
+  filterTypetemp: TJ
+  searchKey:
+  searchCurrKey: 0
+  searchTermKey: 0
+  searchProTypeKey: 0
+  searchProRiskGradeKey: 0
+  searchProProfitTypeKey: 4
+  currentAreaCode: 4402
+  dssFlag: 1
+  nosData:
+  predicted_page: /ICBCWAPBank/ebdpui/dss/aperson/mainpage/clientNew_finance_purchase_list_noSession_new.html
+  entryFlag: 0
+base_format: https://image.mybank.icbc.com.cn/picture/Perfinancingproduct/{}.pdf
+url: https://mywap2.icbc.com.cn/ICBCWAPBank/servlet/WapAPIReqServlet
+index_url: https://www.icbc.com.cn/icbc/

@@ -49,7 +49,8 @@ class CommSession(object):
     def __init__(self, headers=None, verify=True):
         self._session = requests.session()
         if not headers:
-            self._session.headers = default_headers
+            headers = default_headers
+        self._session.headers = headers
         self._session.verify = verify
 
     def session(self, index_url=None) -> requests.sessions:

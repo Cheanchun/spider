@@ -1,0 +1,77 @@
+api_post_data:
+  request:
+    body:
+      pageSize: 20
+      pageNo: 1
+      orderFlag: 6
+      prdChara: 4
+      currentIndex: 0
+      prdTypeNameList: []
+      pfirstAmtList: []
+      currTypeList: []
+      fundModeList: []
+    header:
+      reqSeq: 0
+      appExt: 1
+      feature:
+      net:
+        ip: 192.168.2.174
+      appId: 1
+      custType: 100
+      signedMicroFlag: 0
+      cityCode: 1101
+      ffVersion: 4.0
+      transId:
+      appVersion: 5.3
+      device:
+        osType: 01
+        osVersion: 12.2
+        model: iPhone
+        uuid: EF67D148-4F0C-4782-9558-F75911131A27
+        isBreakOut: 0
+        deviceID: EF67D148-4F0C-4782-9558-F75911131A27
+        brand: iPhone
+        deviceModel: iPhone10,3
+detail_post_data:
+  request:
+    body:
+      prdCode:
+      getVipFlag: 1
+      GroupFlag: 1
+    header:
+      reqSeq: 0
+      appExt: 1
+      feature:
+      net:
+        ip:
+          192.168.43.3
+      appId: 1
+      cusType: 100
+      signedMicroFlag: 0
+      cityCode: 1101
+      ffVersion: 4.0
+      transId:
+      appVersion: 5.3
+      device:
+        osType: 01
+        osVersion: 12.2
+        model: iPhone
+        uuid: EF67D148-4F0C-4782-9558-F75911131A27
+        isBreakOut: 0
+        deviceID: EF67D148-4F0C-4782-9558-F75911131A27
+        brand: iPhone
+        deviceModel: iPhone10,3
+introduce_post_data:
+  request:
+    header:
+      appId:
+      appVersion: 5.3
+      appExt: 1
+      device:
+        appExt: 1
+        osType: 01
+        osVersion:
+        uuid:
+    body:
+      prdCode:
+      infoType: 3

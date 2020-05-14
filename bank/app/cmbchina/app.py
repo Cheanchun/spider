@@ -22,7 +22,7 @@ headers = {
     "Upgrade-Insecure-Requests": "1",
     "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.80 Safari/537.36",
 }
-index = 'https://mobile.cmbchina.com/IEntrustFinance/FinanceProduct/FP_AjaxQueryList.aspx'
+INDEX = 'https://mobile.cmbchina.com/IEntrustFinance/FinanceProduct/FP_AjaxQueryList.aspx'
 param = {
     "Command": "CMD_DOQUERYLISTNEW",
     "ClientNo": "85c0194367894be194bde35da6928535",
@@ -56,7 +56,7 @@ def test(code=None, page_no=1):
         param['ListNo'] = page_no
         param['TimTmp'] = str(time.time() * 1000)
     print(headers)
-    data_json = session.get(index, params=param, ).json()
+    data_json = session.get(INDEX, params=param, ).json()
     # last_rip_code = data_json.get('$SysResult$').get('$Content$').get('DataSource').get('lastRipCod')
     # print('last_rip_code:{}'.format(last_rip_code))
     data_list = data_json.get('$SysResult$').get('$Content$').get('DataSource').get('PrdList')

@@ -52,7 +52,6 @@ post_data = {
 
 
 def api_app():
-    # session = CommSession(headers=HEADERS, verify=True).session()\
     with open('icbc.txt', mode='a+', encoding='u8') as fp:
         for page in range(1, 25):
             post_data['pageNumber'] = str(page)

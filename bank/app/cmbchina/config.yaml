@@ -1,0 +1,39 @@
+param:
+  Command: CMD_DOQUERYLISTNEW
+  ClientNo: 85c0194367894be194bde35da6928535
+  ListNo: 1
+  ListNo_B: 1
+  ListNo_C: 1
+  ListNo_D: 1
+  PrdTerm: 0,
+  PrdPurch: 0
+  BobFlg: A
+  CcyNbr:
+  CltCtl: 0
+  OdrTyp: D
+  OdrFld: B
+  AgtCtm: N
+  PrdTyp: All
+  UserInfo: yJdnBnfi0u1MWCG7zOufUUggbW6LZTFTshIEdju2h%2Bv1VilIm68X8u5iftNLnnjHuA3TjEZ1yiU%2B%2Bo0oJ1pzIekDqM%2FhKnkAVA%2FQ6azV30gLv0xhKyJM9Za9A7XRL%2FAztmbrdjLlP0va7PSgeE6c0KJApuafsPWsjvB1X7xzz%2FwwP2FN6hi4col9yVmHTgXQh%2FFATqVsGOXNzoB9%2BbFvqZNxLqIr66q2uN8Qp%2FmMTCE6FPiZY07j%2BC%2BSTTCUpturVxOBcJd4ySfEts4b2PhV5nsSBhfXbZHzrMqJqFEmV9bw%2FEJRN4k90P3LG45gXmOBJcv%2FiCJmdrvv1TsBUc3uZFxjqNToQT8TiH4td9CisAEz3jG%2FzBm237%2FKXyTOfrfaiRjD0JcCRVxvaFRGv%2FoLqhNc5SSG%2BmNDUNuWImLYSGhbjaqfpkTM9yFgN%2BRX0o3kF5xs7UZBc0WX%2F9X%2BjtKFYTyR2bqXJ4haoEQ7C3Tr64b2spvjNi1TlD1riHMd62f%2B5Eg3f3Ri9Gz79lgQEk6T65M6PG5AXX2oyqVBUteFpTK7OkqOWgZntKQYayxpwnlTLjNux8C2GhEtndSCXr%2FxnuRiiq69o1p51YYq7A9Mpzc%3D
+  RgnDsc: B
+  TimTmp: str(time.time() * 1000)
+  lastRipCod:
+  $24RequestMode%24:
+
+rate_post_data:
+  Command: DOQUERYRATEFMN
+  RipCod: ripcode,
+  RipTyp: C
+  RgnTyp: D
+  PrfTyp: I
+  ClientNo: 5e83c23dfe75405f916ce46d18625aa1
+  RatTag: B
+  $RequestMode$: 1
+book_post_data:
+  ClientNo: efd497b334e64b50b9973ccbc32cddce
+  Code: code
+  offSal: N
+  brdFuc: N
+  behavior_entryid: lcb002004
+  behavior_prodcode: 8199
+  _urlrefer: https://mobile.cmbchina.com/IEntrustFinance/FinanceProduct/FP_FinanceDetail.aspx?version=8.2.0

@@ -33,7 +33,7 @@ HEADERS = {
 }
 
 
-def live_api(post_data):
+def api_data(post_data):
     json_data = requests.post(URL, data=json.dumps(post_data, ensure_ascii=False), verify=False, headers=HEADERS).json()
     pr_list = json_data.get('response').get('prdList')
     for data in pr_list:
@@ -97,7 +97,7 @@ def get_product_introduce(prdCode, data):
         "Accept-Language": "zh-cn",
         "Accept-Encoding": "br, gzip, deflate",
     }
-    post_data = {
+    introduce_post_data = {
         "request": {
             "header": {
                 "appId": "",
@@ -116,7 +116,8 @@ def get_product_introduce(prdCode, data):
             }
         }
     }
-    introductione_content = requests.post(url, data=json.dumps(post_data, ensure_ascii=False), headers=headers).json()
+    introductione_content = requests.post(url, data=json.dumps(introduce_post_data, ensure_ascii=False),
+                                          headers=headers).json()
     data['file_content'] = introductione_content.get('response').get('content')
 
 
@@ -124,4 +125,4 @@ if __name__ == '__main__':
     with open('mingsheng{}.txt'.format(int(time.time())), mode='a+', encoding='u8') as fp:
         for page in range(1, 5):
             post_data['request']['body']['pageNo'] = page
-            live_api(post_data)
+            api_data(post_data)
