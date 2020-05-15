@@ -56,7 +56,7 @@ def api_app():
         for page in range(1, 25):
             post_data['pageNumber'] = str(page)
             post_data['toPage'] = str(page + 1)
-            content = requests.post(URL, data=post_data, headers=HEADERS, verify=True).text
+            content = requests.post(URL, data=post_data, headers=HEADERS, verify=False).text
             content = content.strip().replace('\'', '"')
             content = json.loads(content, encoding='u8')
             for data in content.get('opdata').get('jsonData'):

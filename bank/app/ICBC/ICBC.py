@@ -56,9 +56,9 @@ class ICBC(object):
 
     def instance_session(self):
 
-        return CommSession().session()
+        return CommSession(verify=False, headers=HEADERS).session()
 
-    def _get(self, url, timeout=30, method='get', data=None, retry=3, _headers=None):
+    def _get(self, url, timeout=30, method='get', data=None, retry=3):
         """
         网页下载
         :param url:
@@ -85,7 +85,7 @@ class ICBC(object):
             print('current page:{}'.format(page))
             POST_DATA['pageNumber'] = str(page)
             POST_DATA['toPage'] = str(page + 1)
-            content = self._get(URL, data=POST_DATA, _headers=HEADERS, method='post').text
+            content = self._get(URL, data=POST_DATA, method='post').text
             content = content.strip().replace('\'', '"')
             content = json.loads(content, encoding='u8')
             if not content.get('opdata').get('jsonData'):
@@ -99,7 +99,27 @@ class ICBC(object):
             data['file_url'] = BASE_FORMAT.format(p_id)
         else:
             data['file_url'] = ''
-        self.save_data(data)
+        self.format_data(data)
+
+    def format_data(self, data):
+        final_data = {}
+        final_data['product_status'] = '在售'
+        final_data['issue_bank'] = '工商银行'
+        final_data['lowest_yield'] = data.get('year_income', {}).get('year_data', '')
+        final_data['highest_yield'] = final_data['lowest_yield']
+        final_data['sales_target'] = ''
+        final_data['product_name'] = data.get('name')
+        final_data['sales_target'] = ''
+        final_data['url'] = ''
+        final_data['file_url'] = data.get('file_url', '')
+        final_data['sales_start_date'] = ''
+        final_data['sales_end_date'] = ''
+        final_data['product_type'] = data.get('type')
+        final_data['product_term'] = data.get('limit', {}).get('limit_data', '')
+        final_data['product_nature'] = ''
+        final_data['value_date'] = data.get('interval_date', '')
+        final_data['min_purchase_amount'] = data.get('start_money', {}).get('start_num', '')
+        self.save_data(final_data)
 
     def save_data(self, data):
         print(json.dumps(data, ensure_ascii=False))

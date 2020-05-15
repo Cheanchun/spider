@@ -13,10 +13,9 @@ import traceback
 
 import requests
 import yaml
+from lxml import etree
 
 from bank.utils.utils import CommSession, content2tree
-
-yaml_file = './config.yaml'
 
 
 def get_yaml_data(yaml_file):
@@ -27,9 +26,12 @@ def get_yaml_data(yaml_file):
     return data
 
 
-CONFIG = get_yaml_data(yaml_file=yaml_file)
+YAML_FILE = './config.yaml'
+CONFIG = get_yaml_data(yaml_file=YAML_FILE)
 PARAM = CONFIG.get('param')
-INDEX = 'https://mobile.cmbchina.com/IEntrustFinance/FinanceProduct/FP_AjaxQueryList.aspx'
+INDEX = CONFIG.get('index')
+FILE_URL = CONFIG.get('file_url')
+RATE_URL = CONFIG.get('rate_url')
 HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
     "Accept-Encoding": "gzip, deflate, br",
@@ -59,8 +61,10 @@ HEADERS_DETAIL = {
     "AID": "kwKtuBYeYza5fbSMBj3L1sFhjPc=",
     "Cookie": "pgv_pvi=4890748928",
 }
-FILE_URL = 'https://mobile.cmbchina.com/IEntrustFinance/FinanceProduct/FP_PrdInstruction.aspx?version=8.2.0'
-RATE_URL = 'https://mobile.cmbchina.com/IEntrustFinance/FinanceProduct/FP_AjaxQueryRate.aspx'
+
+final_key_map = {
+    'product_name': 'RipSnm', 'sales_target': '', 'url': '', 'sales_start_date': '',
+    'currency': '', 'product_type': '', 'product_term': '', 'product_nature': ''}
 
 
 class CMBChinaApp(object):
@@ -69,7 +73,7 @@ class CMBChinaApp(object):
 
     def instance_session(self):
 
-        return CommSession().session()
+        return CommSession(verify=False).session()
 
     def _get(self, url, timeout=30, method='get', data=None, retry=3, _headers=None):
         """
@@ -95,7 +99,7 @@ class CMBChinaApp(object):
                 return resp
         raise traceback.format_exc()
 
-    def test(self, code=None, page_no=1):
+    def get_api_data(self, code=None, page_no=1):
         if code:
             PARAM['lastRipCod'] = code
             PARAM['ListNo'] = page_no
@@ -104,9 +108,9 @@ class CMBChinaApp(object):
         data_list = data_json.get('$SysResult$').get('$Content$').get('DataSource').get('PrdList')
         last_code = data_list[-1].get('RipCod') if data_list else ""
         for data in data_list:
-            self.get_rate_data(data.get('RipCod'), data=data)
+            # self.get_rate_data(data.get('RipCod'), data=data)  # 历史收益
             self.production_introduce(data.get('RipCod'), data)
-            print(json.dumps(data, ensure_ascii=False))
+            self.format_data(data)
         return last_code
 
     def get_rate_data(self, ripcode: str, data: json):
@@ -117,6 +121,39 @@ class CMBChinaApp(object):
         rate_data = resp.json().get('$SysResult$').get('$Content$').get('RatData')
         data['RatData'] = rate_data
 
+    def format_data(self, data):
+        """
+
+        :param data:
+        :return:
+        """
+        final_data = {}
+        final_data['product_status'] = '在售'
+        final_data['issue_bank'] = '招商银行'
+        final_data['lowest_yield'] = ''.join(etree.HTML(data.get('PrdRat', '')).xpath('//text()'))
+        final_data['highest_yield'] = final_data['lowest_yield']
+        final_data['sales_target'] = ''
+        final_data['product_name'] = data.get('RipSnm')
+        final_data['sales_target'] = ''
+        final_data['url'] = ''
+        final_data['file_url'] = data.get('file_url', '')
+        final_data['sales_start_date'] = ''
+        final_data['sales_end_date'] = ''
+        final_data['product_type'] = ''
+        final_data['product_term'] = ''
+        final_data['product_nature'] = ''
+        final_data['value_date'] = data.get('PrdInf', '').split('|')[1] if '|' in data.get('PrdInf', '') else ''
+        final_data['min_purchase_amount'] = data.get('PrdInf').split('|')[0] if '|' in data.get('PrdInf') else ''
+        self.save_data(final_data)
+
+    def save_data(self, data):
+        """
+
+        :param data:
+        :return:
+        """
+        print(json.dumps(data, ensure_ascii=False))
+
     def production_introduce(self, code, data):
         """
 
@@ -125,24 +162,24 @@ class CMBChinaApp(object):
 
         post_data = CONFIG.get('book_post_data')
         post_data['Code'] = code
-        resp = self._get(url=FILE_URL, _headers=headers_detail, data=post_data,method='post')
+        resp = self._get(url=FILE_URL, _headers=HEADERS, data=post_data, method='post')
         html = content2tree(resp.text)
         pdf_url = html.xpath('string(//div[@id="ctl00_cphBody_info_PDF"]/@onclick)')
         res = re.search(r'(http.+[doc|pdf|docx])\'', pdf_url)
         if res:
             data['file_url'] = res.group(1)
         else:
-            pass
+            data['file_url'] = ''
         # print(resp.text)
 
     def main(self):
         code = 1
         page = 1
         while code:
-            code = self.test(code=code, page_no=page)
+            code = self.get_api_data(code=code, page_no=page)
             page += 1
 
 
 if __name__ == '__main__':
-    c = CMBChinaApp()
-    c.main()
+    t = CMBChinaApp()
+    t.main()

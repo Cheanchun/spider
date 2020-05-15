@@ -37,3 +37,6 @@ book_post_data:
   behavior_entryid: lcb002004
   behavior_prodcode: 8199
   _urlrefer: https://mobile.cmbchina.com/IEntrustFinance/FinanceProduct/FP_FinanceDetail.aspx?version=8.2.0
+file_url: https://mobile.cmbchina.com/IEntrustFinance/FinanceProduct/FP_PrdInstruction.aspx?version=8.2.0
+rate_url: https://mobile.cmbchina.com/IEntrustFinance/FinanceProduct/FP_AjaxQueryRate.aspx
+index: https://mobile.cmbchina.com/IEntrustFinance/FinanceProduct/FP_AjaxQueryList.aspx

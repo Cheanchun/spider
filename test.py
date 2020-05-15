@@ -6,6 +6,7 @@
 @Todo
 """
 import json
+import time
 from urllib.parse import unquote
 
 import requests
@@ -41,3 +42,6 @@ print(
     s.replace('%20', ' ').replace('%2B', '+').replace('%2F', '/').replace('%3F', '?').replace('%26', '&').replace('%3D',
                                                                                                                   '=').replace(
         '%25', '%').replace('%23', '#'))
+
+
+print(time.time()*1000)
