@@ -5,11 +5,7 @@
 @Desc:
 @Todo
 """
-import datetime
-import json
-import time
-
-import requests
+from urllib.parse import unquote, urlparse, urljoin
 
 """
 非净值型产品：
@@ -31,12 +27,76 @@ urls = [
     "https://ibsbjstar.ccb.com.cn/CCBIS/B2CMainPlat_13_MB?SYS_CODE=0760&MP_CODE=02&SEC_VERSION=4.1.61&APP_NAME=com.ccb.ccbDemo&SKEY=&GLOBAL_SKEY=&ccbParam=YLPra4XXIDakUzYVvjeQlug%2F9RURJFjKEdnPbUvXhv9Krr%2B4lA1M39EGNu5xm2JobKQilisXcO%2FJYLrY01Jghiuf%2BfN5Qc8S9wYh0sFaLLrPu9u6p%2BlxYooHJRT11fXaZtF8LE%2Bp%2FNCBOyf668kqxVJbcpnibhtE1LGKY%2FJvwnKJqFftk7wTMbAGOk5avbniMUuw8rUhYJsxRS%2BuRyhh39YgG1J8wkxrsNHyofs4lh07SreJMpxYww4Pw7v1wN5w2F2PFpq%2F2xrM%2BjAa0WbPgcc%2F%2FHNSCCODRiH6SCq2z6TF8TxmBGnL2pY%2FOzQqTaC7rNdYocvpCAbsyrkN6SPaNJEQ1PrqOZ4CmM5sMO9wmmVnagCZyCzNYm9G0m4zZYiUKcMY7neFLrKnlhwqJzZP5tMTOqiHdbN6ObH5wvUf8ik4Y8jhJS5GWSWWYea97jJ9bAhvqT3Rci%2BhqagzD8cbBJHbGYSandRzrs44Y2wt887OQs5wQaswFa8OCmY33BtvLY7C53l49BgGTDFPgbbEXxTt6ygM%2Fo96gHDaYliqem4W2kv8tzXb7RRmM%2FH5UmOWDzq4NFg7h4pJSRtlo287pRYTrbxt5f%2FenITk6J2DJHOSK6mgjvPZpBX3rj%2FzNVqsp0OlXyRWas%2FLcirLTbhZW5H11qw1Yo8LcT%2B3l%2Bo7ZAUNpcCCmVEL2bEvrFZYPtEUldU0VkWIv5x%2FdCoP0p1kH1qa3UEJaDxmeCxX5FrkO%2FgiuuXgYUa2AmGI7Joqfy66K90qAOygj38vQdU%2FTGsmFJvpjJOZEtUlRWaJtmUymyS%2FVHErvwlR2QwQW%2BUnxaskzoZ%2BkvwNTQYaw4J36s1dzFugvEFzNjCcs2GZvYmCVtlKFxs8ynD8LzVNTNHrZi9L8m4Fmn5q5dbIcrsD41zMAw%3D%3D",
 ]
 
-with open(str(datetime.date.today()) + '.txt', mode='a+') as fp:
-    for url in urls:
-        time.sleep(2)
-        resp = requests.get(url, verify=False)
-        print(resp.json())
-        json_data = resp.json().get('PROD_INFO_GRP')
-        for item in json_data:
-            item['url'] = url
-            fp.write(json.dumps(item, ensure_ascii=False) + '\n')
+print(unquote('%E5%8C%97%E4%BA%AC%E5%B8%82%E5%88%86%E8%A1%8C%2A%20'))
+
+# with open(str(datetime.date.today()) + '.txt', mode='a+') as fp:
+#     for url in urls:
+#         time.sleep(2)
+#         resp = requests.get(url, verify=False)
+#         print(resp.json())
+#         json_data = resp.json().get('PROD_INFO_GRP')
+#         for item in json_data:
+#             item['url'] = url
+#             fp.write(json.dumps(item, ensure_ascii=False) + '\n')
+
+"""
+
+"BsPD_Cd": "115",
+"ASPD_ID": "",
+"IvsmPd_Cd": "JX2018KF01000LB01",
+"ChmtPd_Nm": "代销建信理财乾元龙宝(按日)净值型理财产品",
+"PD_Brnd_Nm": "14",
+"PD_Ind": "8",
+"Eclsv_Stm_ECD": "",
+"PD_Sl_Obj_Cd": "01",
+"Ivs_StDt": "20180425",  # 开始销售日期
+"Ivs_CODt": "20991231",  # 停止销售日期
+"Ivs_Trm": "29835",  # 期限  天
+"Rsk_Grd_Cd": "2",
+"Exp_AnulRtRet": "3.080000",  # 期望收益
+"Unit_NetVal": "1.0740",  # 最新单位净值
+"NetVal_Dt": "20200519",
+"CcyCd": "156",  # 156 人民币  
+"BrkEvn_Ind": "0",
+"PD_Cnfry_Qstnr_ID": "5600",
+"PD_TstLib_ID_Rsk": "1",
+"Othr_Ntw_Adr": "http://eip.ccb.com/transferDir/ccbeip/UserFiles/Content/-64330439418366351762020-02-23.pdf",
+"Web_Acs_Rsc_URL": "http://finance.ccb.com/cn/html1/finance/20/01/19/lb.pdf",
+"PD_Intd_Webst": "",
+"Rs_StDt": "20180418",
+"Rs_EdDt": "20180424",
+"PD_Cnd": "0000010",
+"Txn_Entrst_Beg_Tm": "09:00", # 委托开始时间
+"Txn_Entrst_EdTm": "15:30",    # 委托结束时间
+"SplLmt": "99112640336.8",
+"Bkstg_PD_Tp_ECD": "8",
+"Parm_Cd": "",
+"PD_Tp_ID": "2",
+"Lot_NetVal": "1.074000", # 最新份额净值
+"Rcmm_Txn_TpCd": "",
+"PfCmpBss": "",
+"Cur_URL_Adr": "",
+"Src_URL_Adr": "",
+"Co_Nm": "",
+"EC_FLAG": "1",
+"ChrgFee_Cyc_StDt": "",
+"ChrgFee_Cyc_EdDt": "",
+"Pft_Pcsg_Mod": "0",
+"Exg_Pft_Cmnt": "3.08", # 七天年化期望收益 or 累计年化
+"HQ_Cfm_PdOrd_Ind": "0",
+"PdOrd_Ddln_Dsc": "",
+"Txn_Num_GRP": [{
+    "CorpPrvt_Cd": "1",
+    "Per_Txn_Num_UpLm_Val": "0.0000",
+    "PerTxn_Num_LwrLmt_Val": "1.0000", # 起点金额 或 递进金额
+    "SpLn_Val": "1.00" # 起点金额 或 递进金额
+}],
+"Prod_Func_GRP": [{
+    "PD_Fcn_Cd": "2"
+}],
+"Sale_Inst_ECD_GRP": [{
+    "Sale_Inst_ECD": "999999999"
+}]
+
+"""
+print(urljoin('http://finance.ccb.com/cn','/cn/html1/finance/19/05/0507/ax1.pdf'))
