@@ -1,0 +1,49 @@
+config.py: 用于Url配置
+# UrlConfig(index:首页[必填], list_format:翻页format[必填], max_pages:总页数[必填],
+# 			list_xpath:列表xpath[必填], handler:必填, category:必填,
+# 			website:必填, proxy_type:代理类型[选填 or None], redis_key:必填,
+# 			title_xpath:内容标题xpath[选填 or None], attach_xpath:附件xpath[选填 or None],
+# 			second_num:第二页开始数字[选填 or None])
+UrlConfig = namedtuple('UrlConfig', ['index', 'list_format', 'max_pages',
+                                     'list_xpath', 'handler', 'category',
+                                     'website', 'proxy_type', 'redis_key',
+                                     'title_xpath', 'attach_xpath', 'second_num'])
+									 
+
+CONFIG = [UrlConfig(),...]
+
+eg:
+CONFIG = [
+    UrlConfig('http://file.mofcom.gov.cn/search.shtml?class=01&pageNum=1',
+              'http://file.mofcom.gov.cn/search.shtml?class=01&pageNum={}',
+              9,
+              '//div[@class="crll-detail"]/ul/li/a/@href',
+              'proxy-mfm',
+              u'首页>公开目录',
+              u'中华人民共和国商务部',
+              'abuyun',
+              'policy:mofcom:class01',
+              None,
+              None,
+              2)
+]
+
+
+policy_spider.py：政策智读模板，通过Url配置文件进行爬取
+
+class:
+	PolicyCommon：可以继承，通过重写main方法，实现自己的逻辑
+
+method:
+	__init__: 定义一些参数
+	_initialize：获取基础数据
+	_start_crawl：开始爬取，循环爬取列表和内容页
+	_is_crawl_url：判断是否已经爬取过
+	_coding：设置编码
+	_parse_attach：解析附件
+	
+	save_all_list: 用于将Url配置存入redis，使用UrlConfig配置时使用
+	main：获取基础数据, 程序入口，继承后可重写
+	crawl_page：爬取页面，下载附件等，供外部调用
+	parse_list：解析列表，供外部调用
+	parse_content：解析内容页，供外部调用

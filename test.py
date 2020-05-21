@@ -7,7 +7,7 @@
 """
 import json
 import time
-from urllib.parse import unquote
+# from urllib.parse import unquote
 
 import requests
 
@@ -36,12 +36,8 @@ h = " 0a 00 14 16 2c 37 68 55 6c 53 2b 4e 72 6a 4a 38 6c 57 4c 79 35 67 56 64 44
 # url = 'http://mbank.95559.com.cn:30013/'
 # resp = requests.post(url=url, data=h)
 # print(resp.status_code)
-# print(resp.content)
-s = 'YLPra4XXIDakUzYVvjeQlug%2F9RURJFjKEdnPbUvXhv9Krr%2B4lA1M39EGNu5xm2JobKQilisXcO%2FJYLrY01Jghiuf%2BfN5Qc8S9wYh0sFaLLrPu9u6p%2BlxYooHJRT11fXaZtF8LE%2Bp%2FNCBOyf668kqxVJbcpnibhtE1LGKY%2FJvwnKJqFftk7wTMbAGOk5avbniMUuw8rUhYJuhJ2kntKvSaRPXRx9BvXbnMT5dza3cBA4Unjx1iOQcfrmQiPiYYSVC2fIP75pym%2FCqPtm99FhNCD9hGB8j%2BZKQZ4nRwmSxF00bmYexO%2BhsM27jHk8u%2B5%2FNpy2vrwRQvhdxEClsRmZ4qu1IB%2FcTq%2B5RHxB%2BDwjoW1i5v3DFSGthx60NFUKNNgWgdAGtvngECxj4tUn%2BRuA2FxBG1cETMC1JYLpzvrRjd6j%2FFBKxKQri3np4Ine0GyfqbL58%2FcnAL2eZznK48rtkrtwZ%2Fn1NuL7VIojFD307VO2X7nCM1Fh9D6ArxpcfTVql6C8lZ6kBPF763fvNuXeBAlkoEubUK1kJdopbvzvOfQ2%2Bn5P%2FFT9BA%2Bvqr8ZVJjGSSmJmHcTlb9QCtmuFenLgEVRSdIlzd7u7E9Hru2lBtxXIdCH0oynhdooq%2FGDAdJJmHmwiVRfDBb38yY8vRt4Q8VIUm%2BX6%2Fs6tm%2BxPBdX0cTaGqKfQ7egvyuu1iM%2FSz5YK67FADEqdv2bWSPtVN5MWQH%2Fprz6pItwM7eaOrtyObAhoGEPV9GoR7o82dSMYiXNEFZyIgYt5KYhPHLeXqYJhNfbrM7%2FM882qHpPOpAx6ESntBrEcdleD2SkdNfUKGFCkma%2Ftqxelp6lEIumnyfYdfRfgxFFQv95CzJI3dlLQePI6oYOSGhK1poP9apig92vsl%2FzAkwAXqrC2mrm7WZMgrg%3D%3D'
-print(
-    s.replace('%20', ' ').replace('%2B', '+').replace('%2F', '/').replace('%3F', '?').replace('%26', '&').replace('%3D',
-                                                                                                                  '=').replace(
-        '%25', '%').replace('%23', '#'))
+import requests
 
-
-print(time.time()*1000)
+url = 'https://api.anquanke.com/data/v1/posts?page=1&size=100&tag=%E7%A7%BB%E5%8A%A8%E5%AE%89%E5%85%A8&tag=%E7%A7%BB%E5%8A%A8%E5%AE%89%E5%85%A8'
+resp =  requests.get(url).json()
+print(len(resp.get('data')))

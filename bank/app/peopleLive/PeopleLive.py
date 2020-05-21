@@ -157,7 +157,8 @@ class PeopleLive(object):
         final_data['product_type'] = data.get('prdTypeName')
         final_data['product_term'] = data.get('limit', {}).get('limit_data', '')
         final_data['product_nature'] = ''
-        final_data['next_open_date'] = data.get('prdNextDate')
+        final_data['next_open_date'] = data.get('prdNextDate', '')
+        final_data['next_two_open_date'] = data.get('nextEndDate', '')
         final_data['value_date'] = data.get('workDateList', '')
         final_data['min_purchase_amount'] = data.get('firstAmt', '')
         self.save_data(final_data)

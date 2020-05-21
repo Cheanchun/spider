@@ -46,12 +46,13 @@ def content2tree(response: requests.Response):
 
 
 class CommSession(object):
-    def __init__(self, headers=None, verify=True):
+    def __init__(self, headers=None, verify=True, proxy={}):
         self._session = requests.session()
         if not headers:
             headers = default_headers
         self._session.headers = headers
         self._session.verify = verify
+        self._session.proxies = proxy
 
     def session(self, index_url=None) -> requests.sessions:
         if index_url:
