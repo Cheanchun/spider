@@ -9,6 +9,7 @@ import json
 import random
 import time
 import traceback
+from json import JSONDecoder
 
 import requests
 import yaml

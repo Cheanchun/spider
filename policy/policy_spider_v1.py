@@ -7,12 +7,13 @@
 @usage: 政策解读公共类，通过配置文件爬取
 """
 import sys
+import traceback
 
 import redis
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
-# sys.path.append('/home/work/data/crawler3/crawler3_py/develop_jobs')
+sys.path.append('/home/work/data/crawler3/crawler3_py/develop_jobs')
 
 import datetime
 import json
@@ -53,16 +54,19 @@ FILTER_URL = ['javascript:void(0);', 'javascript:;']
 CHARSET_RE = re.compile(r'<meta.*?charset=["\']*(.+?)["\'>]', flags=re.I)
 PRAGMA_RE = re.compile(r'<meta.*?content=["\']*;?charset=(.+?)["\'>]', flags=re.I)
 ATTACH_RE = re.compile(r'(https?://.*.(doc|docx|xls|xlsx|pdf|zip|rar|7z|gif|jpg|jpeg|png|bmp).*?)')
-NOT_NEED_PATTERN = re.compile(ur'\n| |Â|\\')
+
+redis_config = {'host': '47.105.54.129', 'port': 6388, 'password': 'admin', 'db': 10}
 
 
-class PolicyCommon(object):
+class PolicyCommon():
     """
     政策解读公共类，通过配置文件爬取
     """
+
     def __init__(self):
         # super(PolicyCommon, self).__init__()
         self.topic_id = 'b31d8e04-eba3-4670-969a-ead93d27464e'
+        self.user_redis = redis.Redis(**redis_config)
 
         self.website = None
         self.category = None
@@ -83,8 +87,6 @@ class PolicyCommon(object):
         self.error_list = 'policy:error_list'
 
         self.common_requests = None  # 实例化请求类
-
-        # self.user_redis = redis.Redis(host='127.0.0.1', port=6379, db=0)
 
     def main(self):
         """
@@ -109,20 +111,19 @@ class PolicyCommon(object):
         :return:
         """
         # 第一次时将config中的配置存入redis
-        # if not self.user_redis.exists(self.list_redis):
-        #     self.save_all_list()
+        if not self.user_redis.exists(self.list_redis):
+            self.save_all_list()
 
         # 从redis中取一个url
-        # url_config = self.user_redis.lpop(self.list_redis)
-        # self.user_redis.rpush(self.list_redis, url_config)
-        # url_config = eval(url_config)
-        # if not isinstance(url_config, UrlConfig):
-        #     return None
-        url_config = config.CONFIG[-1]
+        url_config = self.user_redis.lpop(self.list_redis)
+        # self.user_redis.rpush(self.list_redis, url_config)  # todo 调试暂且屏蔽
+        url_config = eval(url_config)
+        if not isinstance(url_config, UrlConfig):
+            return None
 
         # 判断是否需要proxy
         proxy_type = url_config.proxy_type or None
-        self.common_requests = CommonRequests(proxy_type=proxy_type)
+        self.common_requests = CommonRequests(proxy_type=proxy_type, session='yes')
 
         # 获取一些基础数据
         self.index = url_config.index
@@ -138,10 +139,10 @@ class PolicyCommon(object):
 
         # 获取列表页码
         self.max_pages = int(url_config.max_pages or 1)
-        # if self.user_redis.exists(self.is_finished):
-        #     self.max_pages = 1
-        # if self.second_num == 1:
-        #     self.max_pages = self.max_pages - 1 or 1
+        if self.user_redis.exists(self.is_finished):
+            self.max_pages = 1
+        if self.second_num == 1:
+            self.max_pages = self.max_pages - 1 or 1
 
     def _start_crawl(self):
         """
@@ -157,19 +158,28 @@ class PolicyCommon(object):
                 else:
                     list_url = self.list_format.format(page)
 
-            response = self.crawl_page(page_url=list_url)
+            response = self.crawl_page(page_url=list_url, param={'session': 'yes'})
             if response is not None:
                 content_urls = self.parse_list(response=response)
+                print content_urls
                 for content_url in content_urls:
                     # 判断是否已经爬取过
-                    # if self._is_crawl_url(url=content_url):
-                    #     continue
+                    if self._is_crawl_url(url=content_url):
+                        continue
 
+                    response = self.crawl_page(page_url=content_url)
+                    if response is None:
+                        continue
                     try:
-                        self.parse_content(url=content_url, from_='content')
+                        data = self.parse_content(response=response)
+                        # self.save_topic_data(content_url, data, self.topic_id)
+                        print (json.dumps(data, ensure_ascii=False, encoding='u8').replace(u'\ufeff', ''))
+                        print('parse content success and save!')
+
+                        # save this url to redis
+                        self.user_redis.sadd(self.crawled_urls, content_url)
                     except Exception as ex:
-                        # self.logger.error('get content error, {}'.format(ex))
-                        print 'get content error, {}'.format(ex)
+                        print(traceback.format_exc())
             else:
                 self._save_error_list(error_url=list_url)
             page += 1
@@ -187,7 +197,7 @@ class PolicyCommon(object):
             'error_time': '{}'.format(datetime.datetime.now()),  # 获取出错时间
             'hostname': socket.gethostname()  # 获取主机名
         }
-        # self.user_redis.lpush(self.error_list, json.dumps(error))
+        self.user_redis.lpush(self.error_list, json.dumps(error))
 
     def _is_crawl_url(self, url):
         """
@@ -199,8 +209,7 @@ class PolicyCommon(object):
             if self.user_redis.exists(self.crawled_urls) and self.user_redis.sismember(self.crawled_urls, url):
                 return True
         except Exception as ex:
-            # self.logger.error('operate redis error! reason: {}'.format(ex))
-            print 'operate redis error! reason: {}'.format(ex)
+            print('operate redis error! reason: {}'.format(ex.message))
         return False
 
     def crawl_page(self, page_url, param=None):
@@ -210,8 +219,7 @@ class PolicyCommon(object):
         :param param:
         :return:
         """
-        # self.logger.info(u'crawl page: {}, param: {}'.format(page_url, param))
-        print u'crawl page: {}, param: {}'.format(page_url, param)
+        print(u'crawl page: {}, param: {}'.format(page_url, param))
         if param is None:
             param = {}
         try:
@@ -219,11 +227,9 @@ class PolicyCommon(object):
             if response is not None:
                 return response
         except exception.BaseError as ex:
-            # self.logger.error('download page error, {}'.format(ex))
-            print 'download page error, {}'.format(ex)
+            print('download page error, {}'.format(ex))
         except Exception as ex:
-            # self.logger.error('crawl page error: {}'.format(ex))
-            print 'crawl page error: {}'.format(ex)
+            print(traceback.format_exc())
         return None
 
     @staticmethod
@@ -248,73 +254,39 @@ class PolicyCommon(object):
         :param response:
         :return:
         """
-        response = self._coding(response)
         html = etree.HTML(response.text)
         temps = html.xpath(self.list_xpath)
         urls = []
         for temp in temps:
-            url = ''.join(temp.xpath('./@href'))
-            title_temp = temp.xpath('./@title|.//text()')
-            title = title_temp.pop(0)
-            if not title:
-                title = re.sub(NOT_NEED_PATTERN, '', ''.join(title_temp))
-            if not url.startswith('http'):
-                url = urljoin(response.url, url)
-            if ATTACH_RE.findall(url):
-                self.parse_content(url=url, title=title, from_='list')
-            else:
-                urls.append(url)
+            if not temp.startswith('http'):
+                temp = urljoin(response.url, temp)
+            urls.append(temp)
         return urls
 
-    def parse_content(self, url=None, title=None, from_='content'):
+    def parse_content(self, response):
         """
         解析内容页
-        :param url:
-        :param title:
-        :param from_:
+        :param response:
         :return:
         """
-        if from_.lower() == 'content':
-            response = self.crawl_page(page_url=url)
-            if response is None:
-                return None
-            response = self._coding(response)
-            html = etree.HTML(response.text)
+        response = self._coding(response)
         item = dict(ITEM)
         item['website'] = self.website
         item['category'] = self.category
         item['handler'] = self.handler
-        item['HTML'] = response.text if from_.lower() == 'content' else ''
-        item['HTML_length'] = len(item['HTML'])
-        item['refer'] = url
+        item['HTML'] = response.text
+        item['HTML_length'] = len(response.text)
+        item['refer'] = response.url
         item['invTime'] = int(time.time() * 1000)
         item['dataId'] = tools.make_sha256(text=item['refer'])
 
-        if from_.lower() == 'content':
-            item['anchorText'] = re.sub(NOT_NEED_PATTERN, '', ''.join(html.xpath(self.title_xpath or '//title/text()')).strip())
-            attach_temps = html.xpath(self.attach_xpath or '//a')
-            item['attachments'], item['attachments_detail'] = self._parse_attach(attaches=attach_temps, base_url=response.url)
-        else:
-            item['anchorText'] = title
-            item['attachments'] = []
-            item['attachments_detail'] = []
-            # resp = self.crawl_page(page_url=url, param={'stream': True})
-            # if not resp:
-            #     return None
-            md5_url = tools.make_md5(text=url)
-            suffix = url.split('.')[-1].split('?')[0]
-            filename = '{}.{}'.format(md5_url, suffix)
-            # self.save_file(source_stream=resp, filename=filename, source_url=attach_url)
-            item['attachments'].append(filename)
-            attachment = dict(ATTACHMENT)
-            attachment['anchorText'] = title.strip() or md5_url
-            attachment['file'] = filename
-            attachment['url'] = url
-            item['attachments_detail'].append(attachment)
+        html = etree.HTML(response.text)
+        item['anchorText'] = ''.join(html.xpath(self.title_xpath or '//title/text()')).strip()
 
-        self.save_topic_data(url=url, data=item, topic_id=self.topic_id)
-        # save this url to redis
-        # self.user_redis.sadd(self.crawled_urls, url)
+        attach_temps = html.xpath(self.attach_xpath or '//a')
+        item['attachments'], item['attachments_detail'] = self._parse_attach(attaches=attach_temps,
+                                                                             base_url=response.url)
+        return item
 
     def _parse_attach(self, attaches=None, base_url=''):
         """
@@ -348,6 +320,7 @@ class PolicyCommon(object):
                 # resp = self.crawl_page(page_url=attach_url, param={'stream': True})
                 # if resp is None:
                 #     continue
+                print(attach_url, filename)
                 # self.save_file(source_stream=resp, filename=filename, source_url=attach_url)
 
                 # attachments
@@ -361,10 +334,6 @@ class PolicyCommon(object):
                 attachment['url'] = attach_url
                 attachments_detail.append(attachment)
         return attachments, attachments_detail
-
-    def save_topic_data(self, url, data, topic_id):
-        print 'url: {}'.format(url)
-        print 'data: {}'.format(data)
 
 
 if __name__ == '__main__':
