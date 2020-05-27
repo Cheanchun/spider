@@ -7,16 +7,16 @@
 @usage: 公共的requests，用于下载页面
 """
 import sys
+
 reload(sys)
 sys.setdefaultencoding('utf-8')
 sys.path.append('/home/work/data/crawler3/crawler3_py/develop_jobs')
 
 import requests
 
-from common_tools import config
-from common_tools import exception
-from common_tools import tools
-
+from policy.common_tools import config
+from policy.common_tools import exception
+from policy.common_tools import tools
 
 PROXY_METHOD = {
     'zhima': tools.get_zhima_proxy,

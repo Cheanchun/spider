@@ -4,17 +4,14 @@ import json
 import requests
 from lxml.etree import _Element
 
-default_headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.106 Safari/537.36",
-
-}
+DEFAULT_HEADERS = "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.80 Safari/537.36"
 
 
 class CommSession(object):
     def __init__(self, headers=None, verify=False):
         self._session = requests.session()
         if not headers:
-            self._session.headers = default_headers
+            self._session.headers = DEFAULT_HEADERS
         self._session.verify = verify
 
     def session(self, index_url=None):
@@ -96,6 +93,7 @@ def table_parse(table):
     # print json.dumps(sqe, ensure_ascii=False, encoding='u8')
     for raw in sqe:
         print(json.dumps(raw, ensure_ascii=False, encoding='u8'))
+
 
 if __name__ == '__main__':
     pass
