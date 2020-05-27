@@ -26,8 +26,6 @@ from bank.utils.Comm import CommSession, DEFAULT_HEADERS
 from policy.common_tools import tools
 from policy.common_tools.tools import get_abuyun_proxy, get_zhima_proxy
 
-USER_CHROME = True
-USE_PROXY_IMG = False
 ITEM = {
     'website': '',
     'refer': '',
@@ -56,7 +54,7 @@ NOT_NEED_PATTERN = re.compile(ur'\n| |Â|\\')
 
 class ChromeHandle(object):
     def __init__(self, url=None, chrome_config=None, proxy_type=None):
-        self.url = url
+        self.url = index
         self.chrome_config = chrome_config
         self.proxy_type = proxy_type
         self.driver = self._open_chrome()
@@ -123,10 +121,12 @@ class ChromeHandle(object):
         self.driver.get(url)
         return self._wait_page(timeout=timeout, try_times=try_times, **kwargs)
 
-    def restart_chrome(self):
+    def restart_chrome(self, url=None):
         print 'chrome restarting ...'
         self.driver.quit()
         self.driver = self._open_chrome()
+        if url:
+            self.driver.get(url)
         print 'chrome start finish ...'
 
     @property
@@ -159,13 +159,13 @@ class SeleniumCrawler(object):
         self.category = None
         self.handler = None
         self.session = None
-        self.list_xpath = "//font[@class='newslist_style']/a"  # 列表解析内容URL的xpath
+        self.list_xpath = list_config.get('rule')  # 列表解析内容URL的xpath
         self.title_xpath = None  # 标题xpath
         self.attach_xpath = None  # 附件xpath
         self.second_num = None  # 列表页第二页的页码数字
-        self.max_pages = None  # 列表最大页数
-        self.index = None  # 首页url
-        self.list_format = None  # 翻页format
+        self.max_pages = list_config.get('pages', 1)  # 列表最大页数
+        self.index = index  # 首页url
+        self.list_format = list_config.get('format')  # 翻页format
 
         self.is_finished = None  # 是否爬完全量
         self.list_redis = 'policy:all_list'
@@ -259,10 +259,15 @@ class SeleniumCrawler(object):
         if chrome:
             if not self.chrome:
                 self.chrome = ChromeHandle()
-            return self.chrome.get_page(url, **kwargs)
+            try:
+                res = self.chrome.get_page(url, **kwargs)
+                return res
+            except Exception as e:
+                print 'chrome run error {}'.format(e)
+                return self.chrome.restart_chrome(url)
 
         else:
-            if self.chrome:
+            if self.chrome and self.session and self.session.cookies:
                 self.session = self.instance_session(cookie_dict=self.chrome.get_cookies)
             else:
                 self.session = self.instance_session(cookies=kwargs.get('cookies', ''))
@@ -298,13 +303,13 @@ class SeleniumCrawler(object):
         for temp in temps:
             url = ''.join(temp.xpath('./@href'))
             title_temp = temp.xpath('./@title|.//text()')
-            title = title_temp.pop(0)
+            title = title_temp.pop(0) if title_temp else ''
             if not title:
                 title = re.sub(NOT_NEED_PATTERN, '', ''.join(title_temp))
             if not url.startswith('http'):
                 url = urljoin(res_url, url)
             if ATTACH_RE.findall(url):
-                urls.append((url, title))
+                file_urls.append((url, title))
             else:
                 urls.append(url)
         return urls, file_urls
@@ -317,7 +322,46 @@ class SeleniumCrawler(object):
         :param kwargs:
         :return:
         """
-        pass
+        # todo 文件下载 content不需要 但是需要 response
+        item = dict(ITEM)
+        item['website'] = self.website
+        item['category'] = self.category
+        item['handler'] = self.handler
+        item['HTML'] = content if not kwargs.get('title') == 'content' else ''
+        item['HTML_length'] = len(item['HTML'])
+        item['refer'] = url
+        item['invTime'] = int(time.time() * 1000)
+        item['dataId'] = tools.make_sha256(text=item['refer'])
+        if not kwargs.get('title'):
+            html = etree.HTML(content)
+            item['anchorText'] = re.sub(NOT_NEED_PATTERN, '',
+                                        ''.join(html.xpath(self.title_xpath or '//title/text()')).strip())
+            attach_temps = html.xpath(self.attach_xpath or '//a')
+            item['attachments'], item['attachments_detail'] = self._parse_attach(attaches=attach_temps,
+                                                                                 base_url=url)
+        else:
+            item['anchorText'] = kwargs.get('title')
+            item['attachments'] = []
+            item['attachments_detail'] = []
+            md5_url = tools.make_md5(text=url)
+            suffix = url.split('.')[-1].split('?')[0]
+            filename = '{}.{}'.format(md5_url, suffix)
+            item['attachments'].append(filename)
+            attachment = dict(ATTACHMENT)
+            attachment['anchorText'] = kwargs.get('title').strip() or md5_url
+            attachment['file'] = filename
+            attachment['url'] = url
+            item['attachments_detail'].append(attachment)
+            self._save_file(kwargs.get('response'), filename, attach_url=url)
+        self.save_data(url, item, self.topic_id)
+
+    def _save_file(self, resp, filename, attach_url):
+        print attach_url, resp, filename
+        # self.save_file(source_stream=resp, filename=filename, source_url=attach_url)
+
+    def save_data(self, url, item, topic_id):
+        print url, item, topic_id
+        # self.save_topic_data(url=url, data=item, topic_id=self.topic_id)
 
     def _parse_attach(self, attaches=None, base_url=''):
         """
@@ -347,15 +391,7 @@ class SeleniumCrawler(object):
                 # 判断是否已经添加过
                 if filename in attachments:
                     continue
-
-                # resp = self.crawl_page(page_url=attach_url, param={'stream': True})
-                # if resp is None:
-                #     continue
-                # self.save_file(source_stream=resp, filename=filename, source_url=attach_url)
-
-                # attachments
                 attachments.append(filename)
-
                 # attachments_detail
                 attachment = dict(ATTACHMENT)
                 # 当anchorText没有文件名时，用附件url的md5
@@ -366,32 +402,45 @@ class SeleniumCrawler(object):
         return attachments, attachments_detail
 
     def main(self):
-        res = self.get_page(index_url, USER_CHROME)
-        if isinstance(res, bool):
-            content = self.chrome.page_source
-        else:
-            content = self._coding(res).text
-        urls, file_urls = self.parse_list(content, index_url)
-        for url in urls:
-            resp = self.get_page(url, chrome=False)
-            content = self._coding(resp).text
-            print 'url:{},resp:{}'.format(url, res)
-            self.parse_content(content, url)
-        for url, title in file_urls:
-            print 'url:{},resp:{}'.format(url, res)
-            self.parse_content(content='', url=url, title=title)
+        page = 1
+        while page <= self.max_pages:
+            page += 1
+            list_url = self.index
+            if page > 1:
+                if self.second_num == 1:
+                    list_url = self.list_format.format(page - 1)
+                else:
+                    list_url = self.list_format.format(page)
+            res = self.get_page(self.index, sel_config.get('index_use', True))
+            if isinstance(res, bool):
+                content = self.chrome.page_source
+            else:
+                content = self._coding(res).text
+            urls, file_urls = self.parse_list(content, list_url)
+            for url in urls:
+                resp = self.get_page(url, chrome=sel_config.get('detail_use', True))
+                if not isinstance(resp, bool):
+                    content = self._coding(resp).text
+                else:
+                    content = self.chrome.page_source
+                print 'url:{} resp:{}'.format(url, res)
+                self.parse_content(content, url)
+            for url, title in file_urls:
+                print 'url:{} resp:{}'.format(url, res)
+                resp = self.get_page(url, chrome=False, stream=True)
+                self.parse_content(content='', url=url, title=title, response=resp)
 
 
 if __name__ == '__main__':
     UrlConfig = {
-        'index': '',
+        'index': 'http://www.cffex.com.cn/xgfg/',
         'list_config': {
-            'format': '',
-            'pages': '',
-            'rule': '',
+            'format': 'http://www.cffex.com.cn/xgfg/',
+            'pages': 2,
+            'rule': "//li/a[@class='list_a_text ']",
             'method': '',
-            'second_num': '',
-            'step': ''
+            'second_num': '2',
+            'step': '1'
         },
         'content_config': {
             'method': '',
@@ -406,11 +455,15 @@ if __name__ == '__main__':
         'cookie': '',
         'headers': '',
         'selenium_config': {
-            'chrome': [],
-            'index_use': True,
-            'detail_use': False
+            'chrome_config': [],
+            'index_use': False,
+            'detail_use': False,
+            'waiting_xpath': ''
         }
     }
-    index_url = 'http://www.pbc.gov.cn/rmyh/105208/8532/index1.html'
+    sel_config = UrlConfig.get('selenium_config')
+    index = UrlConfig.get('index')
+    list_config = UrlConfig.get('list_config')
+    content_config = UrlConfig.get('content_config')
     t = SeleniumCrawler()
     t.main()
