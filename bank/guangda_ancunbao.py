@@ -3,13 +3,23 @@ import json
 import random
 import re
 import time
+import traceback
 
 import chardet
+import redis
 import requests
 from lxml import etree
 from lxml.etree import XMLSyntaxError
 
 from utils.Comm import CommSession
+
+C_C_D__HTML = 'http://www.cebbank.com/site/gryw/grck/66885778/acbcp/c8c30d44-105.html'
+
+redis_config = {
+    'host': '47.105.54.129',
+    'port': 6388,
+    'password': 'admin'
+}
 
 
 class GuanGDaACunBao():
@@ -21,6 +31,8 @@ class GuanGDaACunBao():
         self.index_url = 'http://www.cebbank.com/'
         self.session = self.instance_session(self.index_url)
         self._url_format = lambda url: self.index_url + url
+        self.user_redis = redis.Redis(**redis_config)
+        self.redis_key = 'key_1'
 
     def _coding(self, response):
         if self.charset_re.findall(response.text):
@@ -79,14 +91,14 @@ class GuanGDaACunBao():
 
     @staticmethod
     def date_format(tr, data):
-        start_date = ''.join(tr.xpath('./td[3]//span/test()')[0])
+        start_date = ''.join(tr.xpath('string(./td[3]//span)'))
         data['sales_start_date'] = start_date if len(start_date) >= 9 else ''
-        end_date = ''.join(tr.xpath('./td[3]//span/test()')[1])
+        end_date = ''.join(tr.xpath('string(./td[3]//span)'))
         data['sales_end_date'] = end_date if len(end_date) >= 9 else ''
 
     @staticmethod
     def final_yield_format(tr, data):
-        final_yield = ''.join(''.join(tr.xpath('./td[6]//test()')).split())
+        final_yield = ''.join(''.join(tr.xpath('./td[6]//text()')).split())
         if '-' in final_yield:
             data['highest_yield'] = final_yield.split('-')[1] + '%' if '-' in final_yield else final_yield
             data['lowest_yield'] = final_yield.split('-')[0] + '%' if '-' in final_yield else final_yield
@@ -125,27 +137,27 @@ class GuanGDaACunBao():
         html = self.content2tree(response)
         trs = html.xpath('//table[position()>1]//tr')
         for tr in trs:
-            data = {'issue_bank': '光大银行'}
+            data = {'issue_bank': u'光大银行'}
             data['sales_target'] = ''
             data['sales_area'] = ''
             try:
                 data['product_name'] = ''.join(''.join(tr.xpath('./td[1]//a/@title')).strip())  # product_name
                 self.date_format(tr, data)
                 self.final_yield_format(tr, data)
-                data['product_term'] = tr.xpath('./td[5]/test()')[0].strip()  # product_term
-                data['min_purchase_amount'] = tr.xpath('./td[4]/test()')[0].strip()  # min_purchase_amount
+                data['product_term'] = tr.xpath('string(./td[5])').strip()  # product_term
+                data['min_purchase_amount'] = tr.xpath('string(./td[4])').strip()  # min_purchase_amount
                 self.sale_status(tr, data)
-                data['currency'] = tr.xpath('./td[2]/test()')[0].strip()
+                data['currency'] = tr.xpath('string(./td[2])').strip()
                 data['url'] = self._url_format(''.join(''.join(tr.xpath('./td[1]/a/@href')).strip()))
                 self.parse_detail(data)
                 data.clear()
             except Exception as e:
                 data.clear()
-                self.logger.error(e)
+                print traceback.format_exc()
 
     def get_current_page_num(self):
         if not self.user_redis.exists(self.redis_key):
-            index_page = 'http://www.cebbank.com/site/gryw/grck/66885778/acbcp/c8c30d44-105.html'
+            index_page = '%s' % C_C_D__HTML
             response = self._get(index_page)
             html = self.content2tree(response)
             page_num = html.xpath('normalize-space(substring-after(//div[@id=\'ceb_fy\']/font,\'/\'))')
@@ -161,8 +173,10 @@ class GuanGDaACunBao():
     def parse_detail(self, data):
         html = self.content2tree(self._coding(self._get(data.get('url'), method='get')))
         data['product_nature'] = ''
-        value_date = html.xpath('//ul[@class=\'fdsy_con_nr1 fl\']/li[1]/test()')
+        value_date = html.xpath('//ul[@class=\'fdsy_con_nr1 fl\']/li[1]/text()')
         data['value_date'] = value_date[0] + '00:00:00' if value_date else ''
+        data['expire_date'] = ''.join(html.xpath('string(//ul[@class=\'fdsy_con_nr1 fl\']/li[2])').split())
+        data['increase_amount'] = ''.join(html.xpath('string(//ul[@class=\'fdsy_con_nr fl\']/li[1])').split())
         data['product_type'] = ''
         data['file_url'] = ''
         self._save_data(data)
@@ -180,8 +194,9 @@ class GuanGDaACunBao():
         end_page = current_page + self.batch_size if current_page + self.batch_size < total_page else total_page + 1
         if not total_page + 1 == end_page:
             tmp = {'current_page': end_page, 'total_page': total_page}
-            self.user_redis(self.redis_key, json.dumps(tmp, ensure_ascii=False, encoding='u8'))
+            self.user_redis.sadd(self.redis_key, json.dumps(tmp, ensure_ascii=False, encoding='u8'))
         for page in range(current_page, end_page):
+            print url.format(page=page)
             self.parse_data(self._coding(self._get(url.format(page=page))))
 
 

@@ -3,7 +3,7 @@
 @Auth:CheanCC
 @Date:2020
 @Desc:
-@Todo
+@Todo   1.下一页操作 2.滑动到指定的标签
 """
 import cookielib
 import random
@@ -53,24 +53,31 @@ NOT_NEED_PATTERN = re.compile(ur'\n| |Â|\\')
 
 
 class ChromeHandle(object):
-    def __init__(self, url=None, chrome_config=None, proxy_type=None):
-        self.url = index
-        self.chrome_config = chrome_config
-        self.proxy_type = proxy_type
-        self.driver = self._open_chrome()
+    def __init__(self, selenium_config):
+        assert isinstance(selenium_config, dict)
+        self.proxy = selenium_config.get('proxy_type', '')
+        self.chrome_init = selenium_config.get('chrome_init')
+        self.driver = self._open_chrome(self.chrome_init)
 
     def _wait_page(self, timeout=5, try_times=3, **kwargs):
+        """
+
+        :param timeout:
+        :param try_times:
+        :param kwargs:
+        :return:
+        """
         waiting = WebDriverWait(self.driver, timeout)
         flag = False
+        wait = kwargs.get('waiting_page')
         for i in range(try_times):
             try:
-
                 if kwargs.get('by_xpath'):
-                    flag = waiting.until(EC.presence_of_all_elements_located((By.XPATH, kwargs.get('by_xpath'))))
+                    flag = waiting.until(EC.presence_of_all_elements_located((By.XPATH, wait.get('by_xpath'))))
                 elif kwargs.get('by_id'):
-                    flag = waiting.until(EC.presence_of_element_located((By.ID, kwargs.get('by_id'))))
+                    flag = waiting.until(EC.presence_of_element_located((By.ID, wait.get('by_id'))))
                 elif kwargs.get('by_class'):
-                    flag = waiting.until(EC.presence_of_all_elements_located((By.CLASS_NAME, kwargs.get('by_class'))))
+                    flag = waiting.until(EC.presence_of_all_elements_located((By.CLASS_NAME, wait.get('by_class'))))
                 else:
                     time.sleep(timeout)
                     return True
@@ -81,14 +88,14 @@ class ChromeHandle(object):
                 return flag
         return flag
 
-    def _open_chrome(self):
+    def _open_chrome(self, init):
         """
         open chrome
         :return: driver
         """
         options = webdriver.ChromeOptions()
-        if self.proxy_type:
-            self.proxy = self._get_proxy(self.proxy_type)
+        if self.proxy:
+            self.proxy = self._get_proxy(self.proxy)
             print(self.proxy)
             options.add_argument("--proxy-server={}".format(self.proxy.get("http") or self.proxy.get("https")))
         options.add_argument('--disable-gpu')
@@ -96,9 +103,9 @@ class ChromeHandle(object):
         options.add_argument('--no-sandbox')
         # options.add_argument("--headless")  # todo headless
         options.add_argument("--user-agent={}".format(DEFAULT_HEADERS))
-        if self.chrome_config and isinstance(self.chrome_config, list):
+        if init and isinstance(init, list):
             c = DesiredCapabilities.CHROME.copy()
-            for item in self.chrome_config:
+            for item in init:
                 if item == 'acceptSslCerts':
                     c['acceptSslCerts'] = True
                     c['acceptInsecureCerts'] = True
@@ -121,23 +128,70 @@ class ChromeHandle(object):
         self.driver.get(url)
         return self._wait_page(timeout=timeout, try_times=try_times, **kwargs)
 
-    def restart_chrome(self, url=None):
+    def restart_chrome(self, url=None, init=None):
         print 'chrome restarting ...'
         self.driver.quit()
-        self.driver = self._open_chrome()
+        self.driver = self._open_chrome(init) if init else self._open_chrome(self.chrome_init)
         if url:
             self.driver.get(url)
         print 'chrome start finish ...'
 
     @property
-    def get_cookies(self):
+    def cookies_dict(self):
+
         return {item.get('name'): item.get('value') for item in self.driver.get_cookies()}
+
+    @staticmethod
+    def create_cookie(name, value, **kwargs):
+        """Make a cookie from underspecified parameters.
+
+        By default, the pair of `name` and `value` will be set for the domain ''
+        and sent on every request (this is sometimes called a "supercookie").
+        """
+        result = {
+            'version': 0,
+            'name': name,
+            'value': value,
+            'port': None,
+            'domain': '',
+            'path': '/',
+            'secure': False,
+            'expires': None,
+            'discard': True,
+            'comment': None,
+            'comment_url': None,
+            'rest': {'HttpOnly': None},
+            'rfc2109': False,
+        }
+
+        badargs = set(kwargs) - set(result)
+        if badargs:
+            err = 'create_cookie() got unexpected keyword arguments: %s'
+            raise TypeError(err % list(badargs))
+
+        result.update(kwargs)
+        result['port_specified'] = bool(result['port'])
+        result['domain_specified'] = bool(result['domain'])
+        result['domain_initial_dot'] = result['domain'].startswith('.')
+        result['path_specified'] = bool(result['path'])
+
+        return cookielib.Cookie(**result)
+
+    @property
+    def cookie_jar(self, overwrite=True):
+        cookiejar = RequestsCookieJar()
+        names_from_jar = [cookie.name for cookie in cookiejar]
+        cookie_dict = self.cookies_dict
+        for name in cookie_dict:
+            if overwrite or (name not in names_from_jar):
+                cookiejar.set_cookie(self.create_cookie(name, cookie_dict[name]))
+        return cookiejar
 
     @property
     def page_source(self):
         return self.driver.page_source
 
-    def _close_chrome(self):
+    def close_chrome(self):
         self.driver.close()  # todo quit 会有错误
         print 'chrome close'
 
@@ -145,8 +199,17 @@ class ChromeHandle(object):
     def user_agent(self):
         return self.driver.execute_script('return navigator.userAgent')
 
+    def click_next_page(self, by_class='', by_xpath='', by_id='', **kwargs):
+        assert not by_id and not by_class and not by_xpath
+        btn = self.driver.find_element_by_id(by_id) or self.driver.find_element_by_xpath(
+            by_xpath) or self.driver.find_element_by_class_name(by_class)
+        print btn.click()
+
+    def roll_page(self):
+        pass
+
     def __del__(self):
-        self._close_chrome()
+        self.close_chrome()
 
 
 class SeleniumCrawler(object):
@@ -258,9 +321,9 @@ class SeleniumCrawler(object):
         """
         if chrome:
             if not self.chrome:
-                self.chrome = ChromeHandle()
+                self.chrome = ChromeHandle(sel_config)
             try:
-                res = self.chrome.get_page(url, **kwargs)
+                res = self.chrome.get_page(url, sel_config=sel_config, **kwargs)
                 return res
             except Exception as e:
                 print 'chrome run error {}'.format(e)
@@ -317,12 +380,14 @@ class SeleniumCrawler(object):
     def parse_content(self, content, url, **kwargs):
         """
 
-        :param content:
-        :param url:
+        :param content:str or requests.Response
+        :param url:文件url
         :param kwargs:
         :return:
         """
         # todo 文件下载 content不需要 但是需要 response
+        if content and isinstance(content, requests.Response):
+            content = content.text
         item = dict(ITEM)
         item['website'] = self.website
         item['category'] = self.category
@@ -455,15 +520,28 @@ if __name__ == '__main__':
         'cookie': '',
         'headers': '',
         'selenium_config': {
-            'chrome_config': [],
-            'index_use': False,
-            'detail_use': False,
-            'waiting_xpath': ''
+            'chrome_init': [],
+            'index_use': True,
+            'detail_use': True,
+            'waiting_page': {
+                'by_class': '',
+                'by_xpath': '',
+                'by_id': ''
+            },
+            'next_page_btn_xpath': '',  # todo 下一页操作
+            'proxy_type': '',
         }
     }
-    sel_config = UrlConfig.get('selenium_config')
+    # sel_config = UrlConfig.get('selenium_config')
     index = UrlConfig.get('index')
     list_config = UrlConfig.get('list_config')
     content_config = UrlConfig.get('content_config')
-    t = SeleniumCrawler()
-    t.main()
+    # t = SeleniumCrawler()
+    # t.main()
+    sel_config = {
+        'proxy_type': '',
+        'chrome_init': '',
+    }
+    driver = ChromeHandle(sel_config)
+    driver.get_page('http://coolshell.cn')
+    print driver.click_next_page(by_xpath="//a[@class='nextpostslink']")
