@@ -7,12 +7,10 @@
 """
 import cookielib
 import json
-import os
 import random
 import re
 import time
 import traceback
-import urlparse
 import warnings
 from urlparse import urljoin
 
@@ -34,7 +32,7 @@ from policy.parser import Parser
 from policy.policy_module.configuration import ATTACH_RE
 
 DEFAULT_HEADERS = "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.80 Safari/537.36"
-FILE_PATH = u'./files/'
+
 REDIS_CONFIG = {'host': '47.105.54.129', 'port': 6388, 'password': 'admin'}
 CHARSET_RE = re.compile(r'<meta.*?charset=["\']*(.+?)["\'>]', flags=re.I)
 PRAGMA_RE = re.compile(r'<meta.*?content=["\']*;?charset=(.+?)["\'>]', flags=re.I)
@@ -202,12 +200,6 @@ class ChromeHandle(object):
     def get_driver(self):
         return self.driver
 
-    def delete_cookies(self):
-        self.driver.delete_all_cookies()
-
-    def delete_cookie(self, name):
-        self.driver.delete_cookie(name)
-
     @property
     def page_source(self):
         return self.driver.page_source
@@ -232,7 +224,7 @@ class ChromeHandle(object):
             return False
 
     def roll_page(self):
-        pass  # todo
+        pass
 
     def find_elements(self, by_class='', by_xpath='', by_id='', **kwargs):
         assert by_id or by_xpath or by_class
@@ -256,6 +248,63 @@ class ChromeHandle(object):
 
     def __del__(self):
         self.close_chrome()
+
+    def file_download(self, resp, url, file_name):
+        with open('./file/{}'.format(file_name), mode='wb') as fp:
+            fp.write(resp.content)
+
+    @staticmethod
+    def check_list_url_type(urls):
+        file_urls = []
+        content_urls = []
+        for item in urls:
+            if ATTACH_RE.search(item.get('url')):
+                file_urls.append({'title': item.get('title'), 'url': item.get('url')})
+            else:
+                content_urls.append({'title': item.get('title'), 'url': item.get('url')})
+        return content_urls, file_urls
+
+    def check_page(self, content, url):
+        if len(content) < 100:
+            self.restart_chrome()
+            self.get_page(url)
+
+    def page_handle(self, cur_url):
+        urls = [{'title': item.get('title'), 'url': urljoin(cur_url, item.get('url'))} for item in
+                self.parse.parse_list(self.driver.page_source)]
+        content_urls, file_urls = self.check_list_url_type(urls)
+        js = 'window.open();'
+        self.driver.execute_script(js)
+        self.driver.switch_to.window(self.driver.window_handles[1])
+        for item in content_urls:
+            self.driver.get(item.get('url'))
+            self.check_page(self.driver.page_source, item.get('url'))
+            file_urls.extend(self.parse.parse_content(self.driver.page_source, item.get('url')))
+            self.data_format(item.get('url'), item.get('title'), self.driver.page_source)
+        if len(self.driver.window_handles) > 1:
+            self.driver.switch_to.window(self.driver.window_handles[-1])
+        self.driver.close()
+        self.driver.switch_to.window(self.driver.window_handles[0])
+        if file_urls:
+            session, session.headers = requests.Session(), {'User-Agent': self.user_redis}
+            session.cookies = self.cookie_jar
+            for item in file_urls:
+                self.file_download(session.get(item.get('url')), item.get('url'), item.get('title'))
+                # print item.get('title'), item.get('url').decode('u8')
+                # pass  # todo 附件下载
+
+    def data_format(self, current_url, title, response):
+        data_format = Formatter(self.website, self.category, self.handler, self.parse)
+        data = data_format.format_data(current_url, title, response)
+        print json.dumps(data, ensure_ascii=False, encoding='u8')
+
+    def main(self):
+        index_url = self.selenium_config.get('index_url')
+        if self.get_page(index_url, **self.selenium_config.get('waiting_page', '')):
+            self.page_handle(self.driver.current_url)
+            for _ in range(1, self.selenium_config.get('total_page', 0)):
+                if self.click_element(**self.selenium_config.get('next_page_btn')):
+                    self.page_handle(self.driver.current_url)
 
 
 class SeleniumPolicySpider(object):
@@ -285,23 +334,20 @@ class SeleniumPolicySpider(object):
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[0])
         if file_urls:
-            session, session.headers = requests.Session(), {'User-Agent': self.chrome_handel.user_agent}
+            session, session.headers = requests.Session(), {'User-Agent': self.user_redis}
             session.cookies = self.chrome_handel.cookie_jar
             for item in file_urls:
                 self.file_download(session.get(item.get('url')), item.get('url'), item.get('title'))
-                print item.get('title'), item.get('url').decode('u8')
+                # print item.get('title'), item.get('url').decode('u8')
                 # pass  # todo 附件下载
 
     def file_download(self, resp, url, file_name):
-        file_path = u'./files/{}/'.format(urlparse.urlparse(self.chrome_handel.current_url).netloc)
-        os.makedirs(file_path)
-        with open(file_path + file_name, mode='wb') as fp:
+        with open('./file/{}'.format(file_name), mode='wb') as fp:
             fp.write(resp.content)
 
     def check_page(self, content, url):
         if len(content) < 100:
-            self.chrome_handel.delete_cookies()
-            # self.chrome_handel.restart_chrome()
+            self.chrome_handel.restart_chrome()
             self.chrome_handel.get_page(url)
 
     @staticmethod

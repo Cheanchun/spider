@@ -49,3 +49,5 @@
 import requests
 
 print requests.get('https://www.baidu.com', verify=False)
+from datetime import datetime
+
