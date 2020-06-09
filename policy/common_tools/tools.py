@@ -39,7 +39,20 @@ def random_sleep_time(start=1, stop=5):
 
     time.sleep(random.randint(start, stop))
 
-
+def coding(response):
+    """
+    设置编码
+    :param response:
+    :return:
+    """
+    if CHARSET_RE.findall(response.text):
+        response.encoding = CHARSET_RE.findall(response.text)[0]
+    elif PRAGMA_RE.findall(response.text):
+        response.encoding = PRAGMA_RE.findall(response.text)[0]
+    else:
+        temp = chardet.detect(response.content)
+        response.encoding = temp['encoding']
+    return response
 def make_md5(text):
     """
     对字符串进行md5加密
