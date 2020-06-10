@@ -39,11 +39,11 @@ REDIS_CONFIG = {'host': '47.105.54.129', 'port': 6388, 'password': 'admin'}
 CHARSET_RE = re.compile(r'<meta.*?charset=["\']*(.+?)["\'>]', flags=re.I)
 PRAGMA_RE = re.compile(r'<meta.*?content=["\']*;?charset=(.+?)["\'>]', flags=re.I)
 WEB_DRIVER_PATH = ''
-FILE_PATH = 'd:\\'
+FILE_PATH = ''
 
 
 class ChromeHandle(object):
-    def __init__(self, selenium_config={}):
+    def __init__(self, selenium_config):
         assert isinstance(selenium_config, dict)
         self.selenium_config = selenium_config
         self.proxy = selenium_config.get('proxy_type', '')
@@ -293,9 +293,9 @@ class SeleniumPolicySpider(object):
                 # pass  # todo 附件下载
 
     def file_download(self, resp, url, file_name):
-        file_path = u'./files/{}/'.format(urlparse.urlparse(self.chrome_handel.current_url).netloc)
+        file_path = os.path.join(FILE_PATH, urlparse.urlparse(url).netloc)
         os.makedirs(file_path)
-        with open(file_path + file_name, mode='wb') as fp:
+        with open(os.path.join(file_path, file_name), mode='wb') as fp:
             fp.write(resp.content)
 
     def check_page(self, content, url):
@@ -336,6 +336,15 @@ class SeleniumPolicySpider(object):
         print json.dumps(data, ensure_ascii=False, encoding='u8')
 
 
+def save_location_file(path):
+    files = os.listdir(path)
+    for _file in files:
+        file_path = os.path.join(path, _file)
+        print file_path
+        with open(file_path, mode='rb') as fp:
+            print fp
+            pass  # todo mongo 写文件入口
+
+
 if __name__ == '__main__':
-    t = SeleniumPolicySpider()
-    t.main()
+    save_location_file('./')
