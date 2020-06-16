@@ -32,6 +32,7 @@ class Formatter(object):
             if isinstance(response, unicode):
                 html = response
             else:
+                response = tools.coding(response)
                 html = response.text
         data = dict(configuration.ITEM)
         data['website'] = self.website

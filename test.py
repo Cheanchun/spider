@@ -44,10 +44,42 @@
 # print data
 # re = session.post(url, data=data)
 # print json.dumps(re.json(),ensure_ascii=False,encoding='u8')
-
+import json
+import time
 
 import requests
 
-print requests.get('https://www.baidu.com', verify=False)
-from datetime import datetime
+
+def zc_data():
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.80 Safari/537.36',
+        # 'cookie': 'acw_tc=76b20ff415922769405186120e74fdda04dbb35c2124642f070dd5edaf054c; _zcy_log_client_uuid=bca23ab0-af7e-11ea-b093-c3aca5c27b8d; districtCode=439900; _dg_playback.bbc15f7dfd2de351.63bf=1; _dg_abtestInfo.bbc15f7dfd2de351.63bf=1; _dg_check.bbc15f7dfd2de351.63bf=-1; districtName=%E6%B9%96%E5%8D%97%E7%9C%81%E6%9C%AC%E7%BA%A7; _dg_id.bbc15f7dfd2de351.63bf=760fa7bcf0af7013%7C%7C%7C1592276949%7C%7C%7C0%7C%7C%7C1592277053%7C%7C%7C1592277052%7C%7C%7C%7C%7C%7C8f7e0cb5dfd0655b%7C%7C%7C%7C%7C%7C%7C%7C%7C1%7C%7C%7Cundefined'
+    }
+    tsp = time.time() * 1000
+    res = requests.get(
+        'https://hunan.zcygov.cn/supplier/open-api/baseinfo/list?timestamp={}&pageNo=1&pageSize=1&tenantCode=430000'.format(
+            tsp), headers=headers).json()
+    print res
+    total = res.get('result').get('total')
+
+    print total
+    url = 'https://hunan.zcygov.cn/supplier/open-api/baseinfo/list?pageNo={}&pageSize=2000&tenantCode=430000'
+    total_page = total // 2000 + 1
+    with open('zc.txt', mode='a+') as fp:
+        for page in range(1, total_page + 1):
+            resp = requests.get(url.format(page), headers=headers).json()
+            data_list = resp.get('result').get('data')
+            for data in data_list:
+                fp.write(json.dumps(data, encoding='u8', ensure_ascii=False).encode('u8') + '\n')
+
+zc_data()
+class ZCGov(object):
+    def __init__(self):
+        pass
+
+    def page_download(self, page, page_size=2000):
+        pass
+
+    def parse_data(self):
+        pass
 
