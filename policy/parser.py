@@ -9,7 +9,6 @@
 import re
 from urlparse import urljoin
 
-import requests
 from lxml import etree
 
 from common_tools import tools
@@ -17,12 +16,11 @@ from policy_module import configuration
 
 
 class Parser(object):
-    def __init__(self, list_parse_type, list_parse_rule, content_format, attach_xpath=None, logger=None):
+    def __init__(self, list_parse_type, list_parse_rule, content_format=None, attach_xpath=None):
         self.list_parse_type = list_parse_type
         self.list_parse_rule = list_parse_rule
         self.content_format = content_format
         self.attach_xpath = attach_xpath
-        self.logger = logger
 
     def parse_list(self, response):
         """
@@ -30,15 +28,17 @@ class Parser(object):
         :param response:
         :return:
         """
+        if isinstance(response, unicode):
+            page_text = response
+        else:
+            response = tools.coding(response=response)
+            page_text = response.text
+
         if self.list_parse_type.lower() == 'xpath':
-            if isinstance(response, unicode):
-                html = etree.HTML(response)
-            else:
-                response = tools.coding(response=response)
-                html = etree.HTML(response.text)
+            html = etree.HTML(page_text)
             temps = html.xpath(self.list_parse_rule)
         elif self.list_parse_type.lower() == 're':
-            temps = self.list_parse_rule.finditer(response.text)
+            temps = self.list_parse_rule.finditer(page_text)
             temps = [temp.groupdict() for temp in temps]
         else:
             temps = []
@@ -55,8 +55,7 @@ class Parser(object):
                 if self.content_format:
                     url = self.content_format.format(url)
                 title = temp.get('title')
-            if isinstance(response, requests.Response) and not url.startswith('http'):
-                url = urljoin(response.url, url)
+
             title = re.sub(configuration.NOT_NEED_PATTERN, '', ''.join(title))
             content_urls.append({'url': url, 'title': title})
         return content_urls
@@ -88,9 +87,9 @@ class Parser(object):
             if not configuration.ATTACH_RE.findall(attach_url):
                 continue
             # 排除重复的
-            if attach_url in [tmp.get('url') for tmp in attaches]:
+            if attach_url in [tmp.get('attach_url') for tmp in attaches]:
                 continue
 
             attach_title = re.sub(configuration.NOT_NEED_PATTERN, '', ''.join(temp.xpath('.//text()')).strip())
-            attaches.append({'title': attach_title, 'url': attach_url})
+            attaches.append({'attach_title': attach_title, 'attach_url': attach_url})
         return attaches

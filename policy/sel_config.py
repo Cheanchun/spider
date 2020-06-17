@@ -10,7 +10,7 @@ config = (
     #     "site_config": {
     #         'index_url': 'http://www.cde.org.cn/regulat.do?method=getList&fclass=all&year=all',
     #         'list_parse_rule': "//tbody/tr/td[2]/a",
-    #         'total_page': 1, # 2
+    #         'total_page': 1,  # 2
     #         'handler': '3-cde',
     #         'category': '法规与规章 >> 中心规章',
     #         'website': '国家药品审计中心',
@@ -2876,7 +2876,7 @@ config = (
     #         },
     #     },
     # },
-
+    #
     # {
     #     "site_config": {
     #         'index_url': 'http://www.sapprft.gov.cn/sapprft/utils/govInfosys.shtml?Category6ID=39&DisplayName=%E5%86%B3%E5%AE%9A&channelID=6593',
@@ -4642,6 +4642,557 @@ config = (
     #         },
     #         'waiting_page': {
     #             'by_xpath': "//ul[@id='infoUl']/li/a[@class='s2']",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.cbrc.gov.cn/chinese/home/docViewPage/110014&current=1',
+    #         'list_parse_rule': "//td[@class='cc']/a[@class='STYLE8']",
+    #         'total_page': 1,  #
+    #         'handler': '1-proxy-cbrc',
+    #         'category': '中国银行业监督管理委员会＞政务信息＞政策法规＞法规及解读',
+    #         'website': '中国银行业监督管理委员会',
+    #         'redis_key': 'policy:audit:cbrc-1',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//tr[36]/td[@class='cc']/a[1]",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//td[@class='cc']/a[@class='STYLE8']",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+    #
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.cbrc.gov.cn/more.do?itemUuid=800103&current=1',
+    #         'list_parse_rule': "//div[@class='maincontent']/ul/li/a",
+    #         'total_page': 1,  #
+    #         'handler': '1-proxy-cbrc',
+    #         'category': '首页>主题分类>规章政策',
+    #         'website': '中国银行业监督管理委员会',
+    #         'redis_key': 'policy:audit:cbrc-2',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//tr[36]/td[@class='cc']/a[1]",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//div[@class='maincontent']/ul/li[1]/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+    #
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.cbrc.gov.cn/searchFen.do?year=&type=null&number=null&docTitle=null&indexNo=null&startDate=null&endDate=null&agencyType=null&interViewType=null&zjgxflag=true&current=1',
+    #         'list_parse_rule': "//div[@class='maincontent']/ul/li[1]/a",
+    #         'total_page': 3,  #291
+    #         'handler': '1-proxy-cbrc',
+    #         'category': '首页>最近更新',
+    #         'website': '中国银行业监督管理委员会',
+    #         'redis_key': 'policy:audit:cbrc-3',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//div[@class='fenyelogo']/a[1]",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//div[@class='maincontent']/ul/li[1]/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+    #
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.cbrc.gov.cn/chinese/newListDoc/111004/1.html',
+    #         'list_parse_rule': "//tbody/tr/td[@class='cc']/a",
+    #         'total_page': 1,  #
+    #         'handler': '1-proxy-cbrc',
+    #         'category': '首页>公告通知',
+    #         'website': '中国银行业监督管理委员会',
+    #         'redis_key': 'policy:audit:cbrc-4',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//tbody/tr[18]/td[@class='cc']/a[1]",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//tbody/tr/td[@class='cc']/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+    #
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.cbrc.gov.cn/chinese/home/docViewPage/110013',
+    #         'list_parse_rule': "//td[@class='cc']/a[@class='STYLE8']",
+    #         'total_page': 1,  #
+    #         'handler': '1-proxy-cbrc',
+    #         'category': '中国银行业监督管理委员会＞政务信息＞政策法规＞相关金融法律',
+    #         'website': '中国银行业监督管理委员会',
+    #         'redis_key': 'policy:audit:cbrc-5',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//td[@class='cc']/a[@class='STYLE8']",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+    #
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.cbrc.gov.cn/chinese/home/docViewPage/110014',
+    #         'list_parse_rule': "//td[@class='cc']/a[@class='STYLE8']",
+    #         'total_page': 1,  #11
+    #         'handler': '1-proxy-cbrc',
+    #         'category': '中国银行业监督管理委员会＞政务信息＞政策法规＞法规及解读',
+    #         'website': '中国银行业监督管理委员会',
+    #         'redis_key': 'policy:audit:cbrc-6',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//tr[36]/td[@class='cc']/a[1]",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//td[@class='cc']/a[@class='STYLE8']",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+    #
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.cbrc.gov.cn/chinese/newListDoc/111001/1.html',
+    #         'list_parse_rule': "//tbody/tr/td[@class='cc']/a",
+    #         'total_page': 1,  #2
+    #         'handler': '1-proxy-cbrc',
+    #         'category': '中国银行业监督管理委员会＞图片新闻',
+    #         'website': '中国银行业监督管理委员会',
+    #         'redis_key': 'policy:audit:cbrc-7',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//tbody/tr[18]/td[@class='cc']/a[1]",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//tbody/tr/td[@class='cc']/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+    #
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.cbrc.gov.cn/chinese/newListDoc/111002/1.html',
+    #         'list_parse_rule': "//tbody/tr/td[@class='cc']/a",
+    #         'total_page': 1,  #
+    #         'handler': '1-proxy-cbrc',
+    #         'category': '中国银行业监督管理委员会＞最新更新',
+    #         'website': '中国银行业监督管理委员会',
+    #         'redis_key': 'policy:audit:cbrc-8',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//tbody/tr[18]/td[@class='cc']/a[1]",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//tbody/tr/td[@class='cc']/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+    #
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.cbrc.gov.cn/chinese/newListDoc/111003/1.html',
+    #         'list_parse_rule': "//tbody/tr/td[@class='cc']/a",
+    #         'total_page': 1,  #
+    #         'handler': '1-proxy-cbrc',
+    #         'category': '中国银行业监督管理委员会＞政策法规',
+    #         'website': '中国银行业监督管理委员会',
+    #         'redis_key': 'policy:audit:cbrc-9',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//tbody/tr[18]/td[@class='cc']/a[1]",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//tbody/tr/td[@class='cc']/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+    #
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.cbrc.gov.cn/chinese/newListDoc/111005/1.html',
+    #         'list_parse_rule': "//tbody/tr/td[@class='cc']/a",
+    #         'total_page': 1,  #12
+    #         'handler': '1-proxy-cbrc',
+    #         'category': '中国银行业监督管理委员会＞监管动态',
+    #         'website': '中国银行业监督管理委员会',
+    #         'redis_key': 'policy:audit:cbrc-10',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//tbody/tr[18]/td[@class='cc']/a[1]",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//tbody/tr/td[@class='cc']/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+    #
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.cbrc.gov.cn/chinese/newListDoc/111006/1.html',
+    #         'list_parse_rule': "//tbody/tr/td[@class='cc']/a",
+    #         'total_page': 1,  #
+    #         'handler': '1-proxy-cbrc',
+    #         'category': '中国银行业监督管理委员会＞时政要闻',
+    #         'website': '中国银行业监督管理委员会',
+    #         'redis_key': 'policy:audit:cbrc-11',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//tbody/tr[18]/td[@class='cc']/a[1]",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//tbody/tr/td[@class='cc']/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+    #
+    #
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.chinabond.com.cn/jsp/include/CB_CN/issue/issuemiddleinclude.jsp?form_subbonds=&form_bondtype=21770&form_bondtype1=21770&form_issueyear=&form_issuenum=&form_keyword=&form_salescompany=&form_salescompanyName=%C8%AB%B2%BF%D6%F7%B3%D0%CF%FA%C9%CC%28%CA%E4%C8%EB%B9%D8%BC%FC%D7%D6%B2%E9%D1%AF%29&form_issuepersonal=&form_issuepersonalName=%C8%AB%B2%BF%B7%A2%D0%D0%C8%CB%28%CA%E4%C8%EB%B9%D8%BC%FC%D7%D6%B2%E9%D1%AF%29&form_cxpj=ROOT%3E%D2%B5%CE%F1%B2%D9%D7%F7%3E%B7%A2%D0%D0%D3%EB%B8%B6%CF%A2%B6%D2%B8%B6%3E%D5%AE%C8%AF%D6%D6%C0%E0%3E%B9%FA%D5%AE&form_zzlx=%B9%FA%D5%AE&xxlx=fxwj&_tp_fxwj=1#',
+    #         'list_parse_rule': "//li[@class='liqxd1']/span[@class='unlock']/a",
+    #         'total_page': 1,  # 116
+    #         'handler': '3-chinabond',
+    #         'category': '首页>业务操作>发行与付息兑付>债券种类>国债>发行文件',
+    #         'website': '中国债券信息网中央结算公司',
+    #         'redis_key': 'policy:audit:chinabond-1',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//ul[@id='pg_fxwj']/li[12]/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//li[@class='liqxd1']/span[@class='unlock']/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+    #
+    #
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.chinabond.com.cn/jsp/include/CB_CN/issue/issuemiddleinclude.jsp?form_subbonds=&form_bondtype=21770&form_bondtype1=21770&form_issueyear=&form_issuenum=&form_keyword=&form_salescompany=&form_salescompanyName=%C8%AB%B2%BF%D6%F7%B3%D0%CF%FA%C9%CC%28%CA%E4%C8%EB%B9%D8%BC%FC%D7%D6%B2%E9%D1%AF%29&form_issuepersonal=&form_issuepersonalName=%C8%AB%B2%BF%B7%A2%D0%D0%C8%CB%28%CA%E4%C8%EB%B9%D8%BC%FC%D7%D6%B2%E9%D1%AF%29&form_cxpj=ROOT%3E%D2%B5%CE%F1%B2%D9%D7%F7%3E%B7%A2%D0%D0%D3%EB%B8%B6%CF%A2%B6%D2%B8%B6%3E%D5%AE%C8%AF%D6%D6%C0%E0%3E%B9%FA%D5%AE&form_zzlx=%B9%FA%D5%AE&xxlx=fxjg&_tp_fxwj=1#',
+    #         'list_parse_rule': "//li[@class='liqxd1']/span[@class='unlock']/a",
+    #         'total_page': 1,  #100
+    #         'handler': '3-chinabond',
+    #         'category': '首页>业务操作>发行与付息兑付>债券种类>国债>发行结果',
+    #         'website': '中国债券信息网中央结算公司',
+    #         'redis_key': 'policy:audit:chinabond-2',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//ul[@id='pg_fxwj']/li[12]/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//li[@class='liqxd1']/span[@class='unlock']/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+    #
+    #
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.chinabond.com.cn/jsp/include/CB_CN/issue/issuemiddleinclude.jsp?form_subbonds=&form_bondtype=21770&form_bondtype1=21770&form_issueyear=&form_issuenum=&form_keyword=&form_salescompany=&form_salescompanyName=%C8%AB%B2%BF%D6%F7%B3%D0%CF%FA%C9%CC%28%CA%E4%C8%EB%B9%D8%BC%FC%D7%D6%B2%E9%D1%AF%29&form_issuepersonal=&form_issuepersonalName=%C8%AB%B2%BF%B7%A2%D0%D0%C8%CB%28%CA%E4%C8%EB%B9%D8%BC%FC%D7%D6%B2%E9%D1%AF%29&form_cxpj=ROOT%3E%D2%B5%CE%F1%B2%D9%D7%F7%3E%B7%A2%D0%D0%D3%EB%B8%B6%CF%A2%B6%D2%B8%B6%3E%D5%AE%C8%AF%D6%D6%C0%E0%3E%B9%FA%D5%AE&form_zzlx=%B9%FA%D5%AE&xxlx=fxjh&_tp_fxwj=1#',
+    #         'list_parse_rule': "//li[@class='liqxd1']/span[@class='unlock']/a",
+    #         'total_page': 1,  #11
+    #         'handler': '3-chinabond',
+    #         'category': '首页>业务操作>发行与付息兑付>债券种类>国债>发行计划',
+    #         'website': '中国债券信息网中央结算公司',
+    #         'redis_key': 'policy:audit:chinabond-3',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//ul[@id='pg_fxwj']/li[12]/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//li[@class='liqxd1']/span[@class='unlock']/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+    #
+    #
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.chinabond.com.cn/jsp/include/CB_CN/issue/issuemiddleinclude.jsp?form_subbonds=&form_bondtype=21770&form_bondtype1=21770&form_issueyear=&form_issuenum=&form_keyword=&form_salescompany=&form_salescompanyName=%C8%AB%B2%BF%D6%F7%B3%D0%CF%FA%C9%CC%28%CA%E4%C8%EB%B9%D8%BC%FC%D7%D6%B2%E9%D1%AF%29&form_issuepersonal=&form_issuepersonalName=%C8%AB%B2%BF%B7%A2%D0%D0%C8%CB%28%CA%E4%C8%EB%B9%D8%BC%FC%D7%D6%B2%E9%D1%AF%29&form_cxpj=ROOT%3E%D2%B5%CE%F1%B2%D9%D7%F7%3E%B7%A2%D0%D0%D3%EB%B8%B6%CF%A2%B6%D2%B8%B6%3E%D5%AE%C8%AF%D6%D6%C0%E0%3E%B9%FA%D5%AE&form_zzlx=%B9%FA%D5%AE&xxlx=fxyc&_tp_fxwj=1#',
+    #         'list_parse_rule': "//li[@class='liqxd1']/span[@class='unlock']/a",
+    #         'total_page': 1,  #
+    #         'handler': '3-chinabond',
+    #         'category': '首页>业务操作>发行与付息兑付>债券种类>国债>发行预测',
+    #         'website': '中国债券信息网中央结算公司',
+    #         'redis_key': 'policy:audit:chinabond-4',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//ul[@id='pg_fxwj']/li[12]/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//li[@class='liqxd1']/span[@class='unlock']/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+    #
+    #
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.chinabond.com.cn/jsp/include/CB_CN/issue/issuemiddleinclude.jsp?form_subbonds=&form_bondtype=21770&form_bondtype1=21770&form_issueyear=&form_issuenum=&form_keyword=&form_salescompany=&form_salescompanyName=%C8%AB%B2%BF%D6%F7%B3%D0%CF%FA%C9%CC%28%CA%E4%C8%EB%B9%D8%BC%FC%D7%D6%B2%E9%D1%AF%29&form_issuepersonal=&form_issuepersonalName=%C8%AB%B2%BF%B7%A2%D0%D0%C8%CB%28%CA%E4%C8%EB%B9%D8%BC%FC%D7%D6%B2%E9%D1%AF%29&form_cxpj=ROOT%3E%D2%B5%CE%F1%B2%D9%D7%F7%3E%B7%A2%D0%D0%D3%EB%B8%B6%CF%A2%B6%D2%B8%B6%3E%D5%AE%C8%AF%D6%D6%C0%E0%3E%B9%FA%D5%AE&form_zzlx=%B9%FA%D5%AE&xxlx=fxdf&_tp_fxwj=1#',
+    #         'list_parse_rule': "//li[@class='liqxd1']/span[@class='unlock']/a",
+    #         'total_page': 1,  #
+    #         'handler': '3-chinabond',
+    #         'category': '首页>业务操作>发行与付息兑付>债券种类>国债>付息兑付',
+    #         'website': '中国债券信息网中央结算公司',
+    #         'redis_key': 'policy:audit:chinabond-5',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//ul[@id='pg_fxwj']/li[12]/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//li[@class='liqxd1']/span[@class='unlock']/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://xxgk.mca.gov.cn:8081/new_gips/gipsSearch',
+    #         'list_parse_rule': "//tbody/tr/td[1]/a",
+    #         'total_page': 1,  #
+    #         'handler': '3-mca',
+    #         'category': '首页> 信息公开> 政府信息公开专栏> 信息公开目录',
+    #         'website': '中华人民共和国民政部',
+    #         'redis_key': 'policy:audit:mca',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//ul[@id='pg_fxwj']/li[12]/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//tbody/tr/td[1]/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+    #
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.iachina.cn/col/col1724/index.html',
+    #         'list_parse_rule': "//li/div[@class='list-top']/a",
+    #         'total_page': 1,  #143
+    #         'handler': '3-iachina',
+    #         'category': '监管要闻   ',
+    #         'website': '中国保险业协会',
+    #         'redis_key': 'policy:audit:iachina-1',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//a[@class='default_pgBtn default_pgNext']",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//li/div[@class='list-top']/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+    #
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.iachina.cn/col/col22/index.html',
+    #         'list_parse_rule': "//div[@class='xhyw-title']/a",
+    #         'total_page': 1,  #252
+    #         'handler': '3-iachina',
+    #         'category': '协会要闻  ',
+    #         'website': '中国保险业协会',
+    #         'redis_key': 'policy:audit:iachina-2',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//a[@class='default_pgBtn default_pgNext']",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//div[@class='xhyw-title']/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+    #
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.iachina.cn/col/col23/index.html',
+    #         'list_parse_rule': "//li/div[@class='list-top']/a",
+    #         'total_page': 1,  #260
+    #         'handler': '3-iachina',
+    #         'category': '行业要文  ',
+    #         'website': '中国保险业协会',
+    #         'redis_key': 'policy:audit:iachina-3',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//a[@class='default_pgBtn default_pgNext']",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//li/div[@class='list-top']/a",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #     },
+    # },
+
+    # {
+    #     "site_config": {
+    #         'index_url': 'http://www.iachina.cn/col/col24/index.html',
+    #         'list_parse_rule': "//li/div[@class='list-top']/a",
+    #         'total_page': 3,  #37
+    #         'handler': '3-iachina',
+    #         'category': '公告通知  ',
+    #         'website': '中国保险业协会',
+    #         'redis_key': 'policy:audit:iachina-4',
+    #     },
+    #     "sel_config": {
+    #         'chrome_init': ['acceptSslCerts'],
+    #         'proxy_type': '',
+    #         'next_page_btn': {
+    #             'by_xpath': "//a[@class='default_pgBtn default_pgNext']",
+    #             'by_id': '',
+    #             'by_class': '',
+    #         },
+    #         'waiting_page': {
+    #             'by_xpath': "//li/div[@class='list-top']/a",
     #             'by_id': '',
     #             'by_class': '',
     #         },

@@ -9,7 +9,7 @@
 import re
 
 FILTER_URL = ['javascript:void(0);', 'javascript:;']
-ATTACH_RE = re.compile(r'(https?://.*.(doc|docx|xls|xlsx|pdf|zip|rar|7z|gif|jpg|jpeg|png|bmp).*?)')
+ATTACH_RE = re.compile(r'(https?://.*\.(doc|docx|xls|xlsx|pdf|zip|rar|7z|gif|jpg|jpeg|png|bmp).*?)')
 NOT_NEED_PATTERN = re.compile(ur'\n| |Â|\\')
 
 ITEM = {

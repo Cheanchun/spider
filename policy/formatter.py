@@ -64,14 +64,14 @@ class Formatter(object):
         attachments = []
         attachments_detail = []
         for attach in attaches:
-            attach_url = attach.get('url')
+            attach_url = attach.get('attach_url')
             md5_url = tools.make_md5(text=attach_url)
             suffix = attach_url.split('.')[-1].split('?')[0]
             filename = '{}.{}'.format(md5_url, suffix)
             attachments.append(filename)
 
             attachment = dict(configuration.ATTACHMENT)
-            attachment['anchorText'] = attach.get('title') or md5_url
+            attachment['anchorText'] = attach.get('attach_title') or md5_url
             attachment['file'] = filename
             attachment['url'] = attach_url
             attachments_detail.append(attachment)

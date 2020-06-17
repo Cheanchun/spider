@@ -18,23 +18,23 @@ with open('info.txt', mode='r') as fp:
     {
         "site_config": {
             'index_url': '"""+site.strip()+"""',
-            'list_parse_rule': "//div[@class='w1']/ul/li/span[1]/a",
+            'list_parse_rule': "//li/div[@class='list-top']/a",
             'total_page': 1,  # 
-            'handler': '3-seac',
+            'handler': '3-iachina',
             'category': '"""+col+"""',
-            'website': '中华人民共和国国家民族事务委员会',
-            'redis_key': 'policy:audit:seac-"""+str(cnt)+"""',
+            'website': '中国保险业协会',
+            'redis_key': 'policy:audit:iachina-"""+str(cnt)+"""',
         },
         "sel_config": {
             'chrome_init': ['acceptSslCerts'],
             'proxy_type': '',
             'next_page_btn': {
-                'by_xpath': "//div[@class='page']/a[@class='next']/font/font",
+                'by_xpath': "//a[@class='default_pgBtn default_pgNext']",
                 'by_id': '',
                 'by_class': '',
             },
             'waiting_page': {
-                'by_xpath': "",
+                'by_xpath': "//li/div[@class='list-top']/a",
                 'by_id': '',
                 'by_class': '',
             },
