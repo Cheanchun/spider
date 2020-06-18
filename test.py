@@ -45,7 +45,6 @@
 # re = session.post(url, data=data)
 # print json.dumps(re.json(),ensure_ascii=False,encoding='u8')
 import json
-import time
 
 import requests
 
@@ -72,14 +71,19 @@ def zc_data():
             for data in data_list:
                 fp.write(json.dumps(data, encoding='u8', ensure_ascii=False).encode('u8') + '\n')
 
-zc_data()
-class ZCGov(object):
-    def __init__(self):
-        pass
 
-    def page_download(self, page, page_size=2000):
-        pass
+import time
 
-    def parse_data(self):
-        pass
+from selenium import webdriver
 
+d = webdriver.Chrome()
+d.get('https:www.baidu.com')
+time.sleep(3)
+d.execute_script('window.open()')
+d.get('https:taobao.com')
+d.execute_script('window.open()')
+for item in range(len(d.window_handles)):
+    d.switch_to.window(d.window_handles[item])
+    print d.current_url
+
+time.sleep(3)

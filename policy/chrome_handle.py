@@ -1,59 +1,52 @@
 # -*- coding=utf-8 -*-
 """
 @Auth:CheanCC
-@Date:20200601
+@Date:2020
 @Desc:
-@Todo   3.chrome报错之后恢复现场 4.文件 点击事件下载，保存之后写入mongo
+@Todo 1.页面滚动 2.页面截图，
 """
 import cookielib
-import json
-import os
-import random
-import re
+import functools
 import time
 import traceback
 import warnings
-from urlparse import urljoin, urlparse
 
-import redis
-import requests
 from requests.cookies import RequestsCookieJar
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver import DesiredCapabilities
-from selenium.webdriver.common.by import By  # 选择方法
-from selenium.webdriver.support import expected_conditions as EC  # 等待条件
-from selenium.webdriver.support.ui import WebDriverWait  # 等待
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from policy.common_tools.tools import get_abuyun_proxy, get_zhima_proxy
-from policy.formatter import Formatter
-from policy.parser import Parser
-from policy.policy_module.configuration import ATTACH_RE
-# from policy.config_v2 import sel_config
-from policy.sel_config import config
 
 DEFAULT_HEADERS = "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.80 Safari/537.36"
-BASE_PATH = u'./files/'
-REDIS_CONFIG = {'host': '47.105.54.129', 'port': 6388, 'password': 'admin'}
-CHARSET_RE = re.compile(r'<meta.*?charset=["\']*(.+?)["\'>]', flags=re.I)
-PRAGMA_RE = re.compile(r'<meta.*?content=["\']*;?charset=(.+?)["\'>]', flags=re.I)
-WEB_DRIVER_PATH = ''
+WEB_DRIVER_PATH = 'chromedriver'
+CHROME_DEFAULT_INIT = ['window-size=1080x720', '--disable-gpu', '--no-sandbox',
+                       "--user-agent={}".format(DEFAULT_HEADERS), '--headless']
+HANDEL_MAP = {}
+
+
+def handel_manage(func):
+    @functools.wraps(func)
+    def wrapper(self, url, *args, **kwargs):
+        HANDEL_MAP[url] = self.driver.current_window_handle
+        func(self, url, *args, **kwargs)
+
+    return wrapper
 
 
 class ChromeHandle(object):
-    def __init__(self, selenium_config, file_download_path=None):
-        assert isinstance(selenium_config, dict)
-        self.selenium_config = selenium_config
+    def __init__(self, config, file_download_path=None):
+        assert isinstance(config, dict)
         self.file_download_path = file_download_path
-        self.proxy = selenium_config.get('proxy_type', '')
-        self.chrome_init = selenium_config.get('chrome_init', [])
+        self.selenium_config = config
+        self.proxy = config.get('proxy_type')
+        self.chrome_init = config.get('chrome_init', [])
         self.driver = self._open_chrome(self.chrome_init)
-        self.driver.implicitly_wait(selenium_config.get('implicitly_wait', 30))  # 隐式等待
-        self.driver.set_page_load_timeout(selenium_config.get('load_timeout', 30))  # 页面加载等待
-        self.user_redis = redis.Redis(**REDIS_CONFIG)
-        self.parse = Parser(list_parse_type='xpath', list_parse_rule=selenium_config.get('list_parse_rule'),
-                            content_format='')
-        self.redis_key = selenium_config.get('redis_key')
+        self.driver.implicitly_wait(config.get('implicitly_wait', 30))  # 隐式等待
+        self.driver.set_page_load_timeout(config.get('load_timeout', 30))  # 页面加载等待
 
     def _wait_page(self, timeout=2, try_times=3, **kwargs):
         """
@@ -61,7 +54,7 @@ class ChromeHandle(object):
         :param timeout:超时
         :param try_times:尝试次数
         :param kwargs:
-        :return:
+        :return:bool
         """
         waiting = WebDriverWait(self.driver, timeout)
         flag = False
@@ -75,36 +68,30 @@ class ChromeHandle(object):
                     flag = waiting.until(EC.presence_of_all_elements_located((By.CLASS_NAME, kwargs.get('by_class'))))
                 else:
                     time.sleep(timeout)
-                    return True
+                    return True  # 未配置等待，默认睡眠，返回True
+                return True
             except TimeoutException:
-                time.sleep(random.randint(1, 2))
                 self.driver.refresh()
-            if flag:
-                return flag
-            else:
                 warnings.warn('Element Not Find,please check the element is available')
         return flag
 
     def _open_chrome(self, init):
         """
         open chrome
+        :param init: chrome init info
         :return: driver
         """
-        print init
+        print 'chrome init info:', init
         options = webdriver.ChromeOptions()
         if self.proxy:
+            print('use proxy', self.proxy)
             self.proxy = self._get_proxy(self.proxy)
-            print(self.proxy)
             options.add_argument("--proxy-server={}".format(self.proxy.get("http") or self.proxy.get("https")))
-        options.add_argument('window-size=1080x720')
-        options.add_argument('--disable-gpu')
-        options.add_argument('--no-sandbox')
         if self.file_download_path:
             pfs = {'profile.default_content_settings.popups': 0, 'download.default_directory': self.file_download_path}
-            options.add_experimental_option('prefs', pfs)  # todo 三期 本地文件存储路径
-        # options.add_experimental_option('excludeSwitches', ['enable-automation'])
-        # options.add_argument("--headless")  # todo headless
-        options.add_argument("--user-agent={}".format(DEFAULT_HEADERS))
+            options.add_experimental_option('prefs', pfs)  # 自定义文件存储路径
+        options.add_experimental_option('excludeSwitches', ['enable-automation'])
+        init = init or CHROME_DEFAULT_INIT
         if init and isinstance(init, list):
             c = DesiredCapabilities.CHROME.copy()
             for item in init:
@@ -112,13 +99,16 @@ class ChromeHandle(object):
                     c['acceptSslCerts'] = True
                     c['acceptInsecureCerts'] = True
                 options.add_argument(item)
-            return webdriver.Chrome(chrome_options=options, desired_capabilities=c)
-            # return webdriver.Chrome(chrome_options=options, desired_capabilities=c, executable_path=WEB_DRIVER_PATH)
-        return webdriver.Chrome(chrome_options=options)
-        # return webdriver.Chrome(chrome_options=options, executable_path=WEB_DRIVER_PATH)
+            return webdriver.Chrome(chrome_options=options, desired_capabilities=c, executable_path=WEB_DRIVER_PATH)
+        return webdriver.Chrome(chrome_options=options, executable_path=WEB_DRIVER_PATH)
 
     @staticmethod
     def _get_proxy(proxy_type='abuyun'):
+        """
+        get a proxy
+        :param proxy_type:
+        :return: proxy ->  {'https':'ip:port','http':'ip:port'}
+        """
         if proxy_type == 'abuyun':
             return get_abuyun_proxy()
         elif proxy_type == 'duobeiyun':
@@ -128,29 +118,41 @@ class ChromeHandle(object):
         else:
             raise TypeError('no such proxy type,please check the proxy type')
 
-    @property
-    def current_url(self):
-        return self.driver.current_url
-
-    def get_page(self, url, timeout=10, try_times=3):
+    @handel_manage
+    def get_page(self, url, timeout=5, page_source=None, try_times=3, waiting={}):
+        """
+        open web page through chrome
+        :param url: page of url
+        :param timeout:
+        :param page_source: is return page_source
+        :param try_times:
+        :param waiting: return until some element is available
+        :return:bool or str
+        """
         try:
             self.driver.get(url)
         except TimeoutException as ex:
             warnings.warn(ex.msg)
             self.restart_chrome(init=self.chrome_init)
             self.driver.get(url)
-        return self._wait_page(timeout=timeout, try_times=try_times, **self.selenium_config)
+        flag = self._wait_page(timeout=timeout, try_times=try_times, **waiting)
+        if flag:
+            if page_source:
+                return self.page_source
+        else:
+            warnings.warn('page get fail the element not find in this page')
+        return flag
 
     def restart_chrome(self, init=None):
+        """
+        close chrome and start a new chrome
+        :param init: chrome init -> list
+        :return:driver with current url page
+        """
         print 'chrome restarting ...'
         self.driver.quit()
         self.driver = self._open_chrome(init) if init else self._open_chrome(self.chrome_init)
         print 'chrome start finish ...'
-
-    @property
-    def cookies_dict(self):
-
-        return {item.get('name'): item.get('value') for item in self.driver.get_cookies()}
 
     @staticmethod
     def create_cookie(name, value, **kwargs):
@@ -188,8 +190,53 @@ class ChromeHandle(object):
 
         return cookielib.Cookie(**result)
 
+    def delete_cookies(self):
+        self.driver.delete_all_cookies()
+
+    def delete_cookie(self, name):
+        self.driver.delete_cookie(name)
+
+    def open_new_handel(self, check_out=False):
+        self.driver.execute_script("window.open()")
+        if check_out:
+            self.driver.switch_to.window(self.driver.window_handles[-1])
+
+    def check_out_handel(self, url=None, index=None, handel_name=None):
+        assert not url and not index and not handel_name
+        if index and abs(index) < len(self.driver.window_handles):
+            self.driver.switch_to.window(self.driver.window_handles[-1])
+            return True
+        elif handel_name:
+            self.driver.switch_to.window(handel_name)
+            return True
+        handel_name = HANDEL_MAP.get(url)
+        self.driver.switch_to.window(handel_name)
+
+    def close_handel(self, url, index):
+        current_handel = self.driver.current_window_handle
+        self.check_out_handel(url, index)
+        self.driver.close()
+        self.check_out_handel(handel_name=current_handel)
+
+    @property
+    def current_url(self):
+        """
+        get current url on current handel
+        :return:url -> str
+        """
+        return self.driver.current_url
+
+    @property
+    def cookies_dict(self):
+        """
+        website cookie
+        :return: cookies  -> dict
+        """
+        return {item.get('name'): item.get('value') for item in self.driver.get_cookies()}
+
     @property
     def cookie_jar(self, overwrite=True):
+        """make a cookie jar obj"""
         cookiejar = RequestsCookieJar()
         names_from_jar = [cookie.name for cookie in cookiejar]
         cookie_dict = self.cookies_dict
@@ -202,39 +249,36 @@ class ChromeHandle(object):
     def get_driver(self):
         return self.driver
 
-    def delete_cookies(self):
-        self.driver.delete_all_cookies()
-
-    def delete_cookie(self, name):
-        self.driver.delete_cookie(name)
-
     @property
     def page_source(self):
         return self.driver.page_source
-
-    def close_chrome(self):
-        self.driver.quit()  # todo quit 会有错误
-        print 'chrome close'
 
     @property
     def user_agent(self):
         return self.driver.execute_script('return navigator.userAgent')
 
-    def click_element(self, by_class='', by_xpath='', by_id='', **kwargs):
+    def close_chrome(self):
+        self.driver.quit()  # todo quit 会有错误
+        print 'chrome close'
+
+    def click_element(self, click_class='', click_xpath='', click_id='', waiting={}):
         try:
-            element = self.find_elements(by_class=by_class, by_xpath=by_xpath, by_id=by_id, **kwargs)
+            element = self.find_elements(click_class, click_xpath, click_id)
             if element:
                 element.click()
-                return self._wait_page(**self.selenium_config.get('waiting_page', {}))
+                return self._wait_page(**waiting)
             return False
         except Exception as ex:
             print traceback.format_exc()
             return False
 
-    def roll_page(self):
+    def roll_page(self, shot=False):
         pass  # todo
 
-    def find_elements(self, by_class='', by_xpath='', by_id='', **kwargs):
+    def shot_image(self):
+        pass  # todo
+
+    def find_elements(self, by_class='', by_xpath='', by_id=''):
         assert by_id or by_xpath or by_class
         try:
             if by_class:
@@ -249,127 +293,42 @@ class ChromeHandle(object):
         except NoSuchElementException:
             print 'element not find in this page'
 
-    def box_input(self, text, by_class='', by_xpath='', by_id='', **kwargs):
-        assert text and (by_id or by_xpath or by_class)
-        elements = self.find_elements()
-        # todo query box input
+    def box_input(self, text, btn_class='', btn_xpath='', btn_id=''):
+        assert text and (btn_id or btn_xpath or btn_class)
+        element = self.find_elements(btn_class, btn_xpath, btn_id)
+        try:
+            element.send_keys(text)
+            return True
+        except Exception as e:
+            traceback.format_exc()
+            return False
 
     def __del__(self):
         self.close_chrome()
 
 
-class SeleniumPolicySpider(object):
-    def __init__(self):
-        self.website = ''
-        self.category = ''
-        self.handler = ''
-        self.chrome_handel = ''
-        self.parse = ''
-        self.config_redis_key = 'macropolicy'
-        self.user_redis = redis.Redis(**REDIS_CONFIG)
-
-    def get_config(self):
-        if not self.user_redis.exists(self.config_redis_key):
-            for item in config:
-                self.user_redis.sadd(self.config_redis_key, json.dumps(item, encoding='u8', ensure_ascii=False))
-        return json.loads(self.user_redis.spop(self.config_redis_key), encoding='u8')
-
-    def page_handle(self, cur_url):
-        urls = [{'title': item.get('title'), 'url': urljoin(cur_url, item.get('url'))} for item in
-                self.parse.parse_list(self.driver.page_source)]
-        content_urls, file_urls = self.check_list_url_type(urls)
-        js = 'window.open();'
-        self.driver.execute_script(js)
-        self.driver.switch_to.window(self.driver.window_handles[1])
-        for item in content_urls:
-            try:
-                self.chrome_handel.get_page(item.get('url'))  # todo 此处可能报错
-                time.sleep(2)
-                self.check_page(self.chrome_handel.page_source, item.get('url'))
-                file_urls.extend(self.parse.parse_content(self.chrome_handel.page_source, item.get('url')))
-                l_url, l_title = item.get('url') or item.get('attach_url'), item.get('title') or item.get(
-                    'attach_title')
-                self.data_format(l_url, l_title, self.driver.page_source, self.parse)
-            except Exception as ex:  # todo 精确捕捉
-                continue
-        if len(self.driver.window_handles) > 1:
-            self.driver.switch_to.window(self.driver.window_handles[-1])
-            self.driver.close()
-        self.driver.switch_to.window(self.driver.window_handles[0])
-        if file_urls:
-            session, session.headers = requests.Session(), {'User-Agent': self.chrome_handel.user_agent}
-            session.cookies = self.chrome_handel.cookie_jar
-            for item in file_urls:
-                f_url = item.get('url') or item.get('attach_url')
-                f_title = item.get('url') or item.get('attach_title')
-                self.file_download(session.get(f_url), f_url, f_title)
-                print item.get('attach_title'), item.get('attach_url').decode('u8')
-                # pass  # todo 附件下载
-
-    def file_download(self, resp, url, file_name):
-        print resp.status_code, url, file_name.decode('u8')
-        # file_path = os.path.join(BASE_PATH, urlparse.urlparse(url).netloc)
-        # if not os.path.exists(file_path):
-        #     os.mkdir(file_path)
-        # with open(os.path.join(file_path, file_name), mode='wb') as fp:
-        #     fp.write(resp.content)
-
-    def check_page(self, content, url):
-        if len(content) < 100:
-            self.chrome_handel.delete_cookies()
-            # self.chrome_handel.restart_chrome()
-            self.chrome_handel.get_page(url)
-
-    @staticmethod
-    def check_list_url_type(urls):
-        file_urls = []
-        content_urls = []
-        for item in urls:
-            if ATTACH_RE.search(item.get('url')):
-                file_urls.append({'title': item.get('title'), 'url': item.get('url')})
-            else:
-                content_urls.append({'title': item.get('title'), 'url': item.get('url')})
-        return content_urls, file_urls
-
-    def main(self):
-        conf = self.get_config()
-        sel_config = conf.get('sel_config')
-        site_config = conf.get('site_config')
-        index_url = site_config.get('index_url')
-        file_download_path = urljoin(BASE_PATH, urlparse(index_url).netloc)
-        os.makedirs(file_download_path)
-        self.website, self.category = site_config.get('website'), site_config.get('category')
-        self.handler = sel_config.get('handler')
-        self.parse = Parser(list_parse_type='xpath', list_parse_rule=site_config.get('list_parse_rule'),
-                            content_format='')
-        self.chrome_handel = ChromeHandle(sel_config, file_download_path)  # todo file_download_path
-        self.driver = self.chrome_handel.driver
-        try:
-            if self.chrome_handel.get_page(index_url):
-                self.page_handle(self.chrome_handel.current_url)
-                for _ in range(1, site_config.get('total_page', 0)):
-                    if self.chrome_handel.click_element(**sel_config.get('next_page_btn')):
-                        self.page_handle(self.chrome_handel.current_url)
-            del self.chrome_handel
-        except Exception as e:
-            self.save_location_file(file_download_path)
-
-    def data_format(self, current_url, title, response, parse):
-        data_format = Formatter(self.website, self.category, self.handler, parse)
-        data = data_format.format_data(current_url, title, response)
-        print json.dumps(data, ensure_ascii=False, encoding='u8')
-
-    @staticmethod
-    def save_location_file(path):
-        files = os.listdir(path)
-        for _file in files:
-            file_path = os.path.join(path, _file)
-            print file_path
-            with open(file_path, mode='rb') as fp:
-                print fp
-                pass  # todo mongo 写文件入口
-
-
 if __name__ == '__main__':
-    t = SeleniumPolicySpider()
-    t.main()
+    sel_config = {
+        'chrome_init': ['acceptSslCerts'],
+        'proxy_type': '',
+
+    }
+    client_btn = {
+        'by_xpath': "//input[@id='su']",
+        'by_id': '',
+        'by_class': '',
+    }
+    waiting_page = {
+        'by_xpath': "//input[@id='su1']|//input[@id='su']",
+        'by_id': '',
+        'by_class': '',
+    }
+    c = ChromeHandle(sel_config)
+    c.get_page('https://www.baidu.com', waiting=waiting_page, page_source=True)
+    time.sleep(2)
+    c.open_new_handel(check_out=True)
+    c.get_page('https://www.taobao.com')
+    c.check_out_handel('https://www.baidu.com')
+    print HANDEL_MAP
+    time.sleep(2)
+    del c
