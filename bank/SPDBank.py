@@ -277,9 +277,7 @@ class GuangDa():
 
 
 if __name__ == '__main__':
-    while user_redis.exists('financial_pufa'):
-        time.sleep(60)
-        fp = open('./datas/pufa{}.txt'.format(str(datetime.date.today())), mode='a+')
+        fp = open('./pufa{}.txt'.format(str(datetime.date.today())), mode='a+')
         t = GuangDa()
         t.main()
         fp.close()

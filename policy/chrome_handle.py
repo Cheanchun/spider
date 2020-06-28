@@ -261,6 +261,10 @@ class ChromeHandle(object):
         self.driver.quit()  # todo quit 会有错误
         print 'chrome close'
 
+    @handel_manage
+    def get(self, url):
+        self.driver.get(url)
+
     def click_element(self, click_class='', click_xpath='', click_id='', waiting={}):
         try:
             element = self.find_elements(click_class, click_xpath, click_id)
@@ -272,10 +276,10 @@ class ChromeHandle(object):
             print traceback.format_exc()
             return False
 
-    def roll_page(self, shot=False):
+    def roll_page(self, shot=False, img_path=None):
         pass  # todo
 
-    def shot_image(self):
+    def shot_image(self, img_path):
         pass  # todo
 
     def find_elements(self, by_class='', by_xpath='', by_id=''):
@@ -300,7 +304,7 @@ class ChromeHandle(object):
             element.send_keys(text)
             return True
         except Exception as e:
-            traceback.format_exc()
+            print traceback.format_exc()
             return False
 
     def __del__(self):

@@ -74,16 +74,21 @@ def zc_data():
 
 import time
 
-from selenium import webdriver
 
-d = webdriver.Chrome()
-d.get('https:www.baidu.com')
-time.sleep(3)
-d.execute_script('window.open()')
-d.get('https:taobao.com')
-d.execute_script('window.open()')
-for item in range(len(d.window_handles)):
-    d.switch_to.window(d.window_handles[item])
-    print d.current_url
+class Dict(dict):
 
-time.sleep(3)
+    def __init__(self, **kw):
+        super(dict, self).__init__(**kw)
+
+    def __getattr__(self, key):
+        try:
+            return self[key]
+        except KeyError:
+            raise AttributeError(r"'Dict' object has no attribute '%s'" % key)
+
+    def __setattr__(self, key, value):
+        self[key] = value
+
+
+v = Dict(a='1', b=3)
+print v.a
