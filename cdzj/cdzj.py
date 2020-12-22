@@ -1,7 +1,8 @@
 # coding:utf-8
-import mongo as mongo
-import requests
+import datetime
+
 import pymongo
+import requests
 from lxml import etree
 
 url = 'https://zw.cdzj.chengdu.gov.cn/zwdt/SCXX/Default.aspx?action=ucEveryday2'
@@ -23,6 +24,7 @@ headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
 }
 
+
 def get_page():
     resp = requests.get(url, headers=headers)
     if resp.status_code == 200:
@@ -31,7 +33,8 @@ def get_page():
         print('page get fail...')
 
 
-def parse_data(resp : requests.Response):
+def parse_data(resp: requests.Response):
+    date = datetime.datetime.now()
     html = etree.HTML(resp.text)
     final_data = {}
     trs = html.xpath("//div[@class='rightContent']/div[@class='rightContent']//tr[position()>2]//text()")
@@ -39,7 +42,10 @@ def parse_data(resp : requests.Response):
     for item in trs:
         if item.strip():
             clean_trs.append(item.strip())
+        else:
+            clean_trs.append(0)
     print(clean_trs)
+    final_data['crawler_time'] = date
     final_data['fir_center_area'] = clean_trs[1]
     final_data['fir_center_house_count'] = clean_trs[2]
     final_data['fir_house_total_size'] = clean_trs[3]
@@ -60,13 +66,15 @@ def parse_data(resp : requests.Response):
     final_data['sec_country_total_size'] = clean_trs[23]
     final_data['sec_country_total_size'] = clean_trs[24]
     return final_data
-def save_data(data):
-    cnn = pymongo.MongoClient(host='47.105.54.129',port=27017)
-    db = cnn.shixin
-    res = db.authenticate('chean','scc123321') # 验证
-    col = db.cdzj
 
-    print(col.insert(data))
+
+def save_data(data):
+    cnn = pymongo.MongoClient(host='47.105.54.129', port=27017)
+    db = cnn.shixin
+    res = db.authenticate('chean', 'scc57295729')  # 验证
+    col = db.cdzj
+    col.insert(data)
+
 
 if __name__ == '__main__':
     data = parse_data(get_page())
