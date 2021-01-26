@@ -42,9 +42,7 @@ def parse_data(resp: requests.Response):
     for item in trs:
         if item.strip():
             clean_trs.append(item.strip())
-        else:
-            clean_trs.append(0)
-    print(clean_trs)
+    # print(clean_trs)
     final_data['crawler_time'] = date
     final_data['fir_center_area'] = clean_trs[1]
     final_data['fir_center_house_count'] = clean_trs[2]
@@ -58,13 +56,13 @@ def parse_data(resp: requests.Response):
 
     final_data['sec_center_area'] = clean_trs[16]
     final_data['sec_center_house_count'] = clean_trs[17]
-    final_data['sec_house_total_size'] = clean_trs[18]
-    final_data['sec_business_total_size'] = clean_trs[19]
+    final_data['sec_center_house_total_size'] = clean_trs[18]
+    final_data['sec_center_business_total_size'] = clean_trs[19]
 
     final_data['sec_country_area'] = clean_trs[21]
     final_data['sec_country_house_count'] = clean_trs[22]
-    final_data['sec_country_total_size'] = clean_trs[23]
-    final_data['sec_country_total_size'] = clean_trs[24]
+    final_data['sec_country_house_total_size'] = clean_trs[23]
+    final_data['sec_country_business_total_size'] = clean_trs[24]
     return final_data
 
 
