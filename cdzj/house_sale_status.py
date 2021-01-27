@@ -32,7 +32,7 @@ msg = messaging.RemotingMessage()
 def getRequestData():
     msg.headers = {
         "DSEndpoint": 'my-amf',
-        "DSId": "1E5AD026-941E-CB1C-18E7-49B145C5D000"
+        "DSId": "299864DE-9F1C-D3BD-9693-6347498D3CEF"
     }
     msg.destination = "SMService"
     msg.operation = "ExecRPC"
@@ -62,7 +62,6 @@ def getRequestData():
 
 def getResponse(data):
     # 这个url一定是amf结尾的哦
-    # url = 'http://jgsb.agri.cn/controller?SERVICE_ID=REGISTRY_JCSJ_MRHQ_SHOW_SERVICE&recordperpage=15&newsearch=true&login_result_sign=nologin'
     url = 'https://zw.cdzj.chengdu.gov.cn/DE-SMServerFx/messagebroker/amf'
     response = requests.post(url, data, headers=headers, verify=False)
     return response.content
