@@ -19,10 +19,10 @@ headers = {
     "Accept-Encoding": "gzip, deflate, br",
     "Origin": "https://zw.cdzj.chengdu.gov.cn",
     "Connection": "keep-alive",
-    "Cookie": "JSESSIONID=F971539AF85A8CCB87B2616BBE39E4E1; FntCookie=TraditionalOrSimplized=0; ASP.NET_SessionId=pygkmqjupi54xr55hehrhm55",
+    "Cookie": "JSESSIONID=B1F1FD3227AA632421F9B01C44AC3D75; FntCookie=TraditionalOrSimplized=0; ASP.NET_SessionId=pygkmqjupi54xr55hehrhm55",
     "Referer": "https://zw.cdzj.chengdu.gov.cn/DE-SMServerFx/FundateClient.swf?t=1&param=dfKr9U7lple67abd5wFvyI52vkx2j%2FvdwKNC2r1C2Tk4%2BpBjAwp%2BqT%2BNJmFaGXgbtQyK5%2FGlb%2FRJcJCg2ZIyJoIlxDrrlrur%2BsPFzKImAbhQoEmW9DnHnWsm0HvtCY4O3xhF0a%2BN5a%2F28vYK8DU%2FA%2FZbcL%2B3PE8C26punMzcYnc%3D",
     "Content-type": "application/x-amf",
-    "Content-length": "519",
+    # "Content-length": "519",
 
 }
 
@@ -30,38 +30,31 @@ msg = messaging.RemotingMessage()
 
 
 def getRequestData():
-    # 请求体第一个参数是查询参数, 第二个是页数,第三个是控制每页显示的数量
-    msg.Content = [
-        {
-            "source": None,
-            "operation": 'ExecRPC',
-            "timestamp": 0,
-            "clientId": None,
-            "destination": "SMService",
-            "headers": {
-                "DSEndpoint": 'my-amf',
-                "DSId": "1D666BDD-0F18-30E5-7841-1C99D348FF23"
-            },
-            "messageId": "ED56AEE0-0722-5EF5-ABBF-3D9A716284EF",
-            "body": [
-                "HouseTableServiceImpl",
-                "getHouses",
-                [
-                    {
-                        "UNO": 1,
-                        "HNO": 7,
-                        "paramStr": "dfKr9U7lple67abd5wFvyI52vkx2j/vdwKNC2r1C2Tk4+pBjAwp+qT+NJmFaGXgbtQyK5/Glb/RJcJCg2ZIyJoIlxDrrlrur+sPFzKImAbhQoEmW9DnHnWsm0HvtCY4O3xhF0a+N5a/28vYK8DU/A/ZbcL+3PE8C26punMzcYnc=",
-                    }
-                ],
+    msg.headers = {
+        "DSEndpoint": 'my-amf',
+        "DSId": "1E5AD026-941E-CB1C-18E7-49B145C5D000"
+    }
+    msg.destination = "SMService"
+    msg.operation = "ExecRPC"
+    msg.timeToLive = 0
+    msg.timestamp = 0
+    msg.source = None
+    msg.messageId = '45BFC871-AC7A-7099-A7C7-42995FE950C0'
+    msg.body = [
+                   "HouseTableServiceImpl",
+                   "getHouses",
+                   {
+                       "UNO": 1,
+                       "HNO": 8,
+                       "paramStr": "dfKr9U7lple67abd5wFvyI52vkx2j/vdwKNC2r1C2Tk4+pBjAwp+qT+NJmFaGXgbtQyK5/Glb/RJcJCg2ZIyJoIlxDrrlrur+sPFzKImAbhQoEmW9DnHnWsm0HvtCY4O3xhF0a+N5a/28vYK8DU/A/ZbcL+3PE8C26punMzcYnc=",
+                   }
+                   ,
 
-            ],
-            "timeToLive": 0
-        }
-    ]
+               ],
 
-    req = remoting.Request('null',body=msg)
+    req = remoting.Request('null', body=[msg])
     env = remoting.Envelope(amfVersion=pyamf.AMF3)
-    env.bodies = [('/1', req)]
+    env.bodies = [('/2', req)]
     data = bytes(remoting.encode(env).read())
     # 返回一个请求的数据格式
     return data
