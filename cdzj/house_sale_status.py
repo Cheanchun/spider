@@ -63,7 +63,7 @@ def getRequestData():
 def getResponse(data):
     # 这个url一定是amf结尾的哦
     url = 'https://zw.cdzj.chengdu.gov.cn/DE-SMServerFx/messagebroker/amf'
-    response = requests.post(url, data, headers=headers, verify=False)
+    response = requests.post(url, data, headers=headers)
     return response.content
 
 
