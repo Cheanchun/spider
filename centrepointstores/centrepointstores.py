@@ -213,7 +213,7 @@ def data_parse(resp: requests.Response, sec_cate, third_cate):
         p_url = item.get('url')
         for key, value in p_url.items():
             url = p_url[key].get('en')
-            index_product['product_url'] = urljoin('https://www.centrepointstores.com/ae/en/', url)
+            index_product['product_url'] = 'https://www.centrepointstores.com/ae/en/{}'.format(url)
             break
         index_product['first_category'] = FIRST_CATE
         index_product['second_category'] = sec_cate
