@@ -11,33 +11,31 @@ import datetime
 import json
 import os
 import re
-from urllib.parse import urljoin
-
-import pymongo
 import time
 from copy import deepcopy
 
+import pymongo
 import redis
 import requests
 from lxml import etree
 
-url = 'https://lm8x36l8la-dsn.algolia.net/1/indexes/*/queries?X-Algolia-API-Key=7a625e3a548ccdd0393b5565896c5d89&X-Algolia-Application-Id=LM8X36L8LA&X-Algolia-Agent=Algolia%20for%20vanilla%20JavaScript%202.9.7'
+url = 'https://3hwowx4270-dsn.algolia.net/1/indexes/*/queries?X-Algolia-API-Key=4c4f62629d66d4e9463ddb94b9217afb&X-Algolia-Application-Id=3HWOWX4270'
 headers = {
     "Accept": "*/*",
     "Accept-Encoding": "gzip, deflate, br",
     "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
     "Cache-Control": "no-cache",
     "Connection": "keep-alive",
-    "Content-Length": "894",
+    "Content-Length": "921",
     "Content-type": "application/x-www-form-urlencoded",
-    "Host": "lm8x36l8la-dsn.algolia.net",
+    "Host": "3hwowx4270-dsn.algolia.net",
     "Origin": "https://www.centrepointstores.com",
     "Pragma": "no-cache",
     "Referer": "https://www.centrepointstores.com/",
     "Sec-Fetch-Dest": "empty",
     "Sec-Fetch-Mode": "cors",
     "Sec-Fetch-Site": "cross-site",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36",
 
 }
 FIRST_CATE = 'Woman-Clothing'
@@ -46,7 +44,7 @@ db = cnn.shixin
 db.authenticate("chean", "scc57295729")
 col = db['cps_v3']
 user_redis = redis.Redis(host='47.105.54.129', port='6388', password='admin')
-proxy = {'https': '192.168.2.117:7890'}
+proxy = {'https': '172.20.10.5:7890'}
 index_headers = {
     "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
     "accept-encoding": "gzip, deflate, br",
@@ -80,7 +78,15 @@ def get_product(cate, page=0, file_dir=''):
         ],
     }
     temp = "query=*&hitsPerPage=42&page={pn}&facets=*&facetFilters=%5B%22inStock%3A1%22%2C%22approvalStatus%3A1%22%2C%22allCategories%3A{cate}%22%2C%22badge.title.en%3A-LASTCHANCE%22%5D&getRankingInfo=1&clickAnalytics=true&attributesToHighlight=null&analyticsTags=%5B%22{cate}%22%2C%22en%22%5D&attributesToRetrieve=concept%2CmanufacturerName%2Curl%2C333WX493H%2C345WX345H%2C505WX316H%2C550WX550H%2C499WX739H%2Cbadge%2Cname%2Csummary%2CwasPrice%2Cprice%2CemployeePrice%2CshowMoreColor%2CproductType%2CchildDetail%2Csibiling%2CthumbnailImg%2CgallaryImages%2CisConceptDelivery&numericFilters=price%20%3E%201.9&query=*&maxValuesPerFacet=500&tagFilters=%5B%5B%22babyshop%22%2C%22splash%22%2C%22lifestyle%22%2C%22shoemart%22%2C%22centrepoint%22%2C%22shoexpress%22%2C%22lipsy%22%2C%22sportsone%22%2C%22sminternational%22%5D%5D"
+    # temp = "query=*&hitsPerPage=42&page={pn}&facets=*&facetFilters=%5B%22inStock%3A1%22%2C%22approvalStatus%3A1%22%2C%22allCategories%3A{cate}%22%2C%22badge.title.en%3A-LASTCHANCE%22%5D&getRankingInfo=1&clickAnalytics=true&attributesToHighlight=null&analyticsTags=%5B%22{cate}%22%2C%22en%22%5D&attributesToRetrieve=concept%2CmanufacturerName%2Curl%2C333WX493H%2C345WX345H%2C505WX316H%2C550WX550H%2C499WX739H%2Cbadge%2Cname%2Csummary%2CwasPrice%2Cprice%2CemployeePrice%2CshowMoreColor%2CproductType%2CchildDetail%2Csibiling%2CthumbnailImg%2CgallaryImages%2CisConceptDelivery&numericFilters=price%20%3E%201&query=*&maxValuesPerFacet=500&tagFilters=%5B%5B%22babyshop%22%2C%22splash%22%2C%22lifestyle%22%2C%22shoemart%22%2C%22centrepoint%22%2C%22shoexpress%22%2C%22sportsone%22%2C%22sminternational%22%2C%22lipsy%22%5D%5D"
     time.sleep(1)
+    p_data = {"requests":
+        [
+            {"indexName": "prod_uae_centrepoint_Product",
+             "params": ''
+             }
+        ]
+    }
     post_data['requests'][0]['params'] = temp.format(pn=page, cate=cate)
     resp = requests.post(url, headers=headers, json=post_data, proxies=proxy)
     with open(os.path.join(file_dir, '{}pageContent.json'.format(page)), mode='w+', encoding='u8') as fp:
@@ -137,18 +143,18 @@ def get_main_category():
     }
     category = [
         # Bottoms
-        # "cpwomen-clothing-bottoms-jeans",
-        # "cpwomen-clothing-bottoms-joggers",
-        # "cpwomen-clothing-bottoms-leggingsandjeggings",
-        # "cpwomen-clothing-bottoms-pantsandchinos",
-        # "cpwomen-clothing-bottoms-skirtsandshorts",
-        # # Dresses
-        # "cpwomen-clothing-dresses",
-        # # Jumpsuits & Playsuits
-        # "cpwomen-clothing-jumpsuitsandplaysuits",
-        # # Lingerie
-        # "cpwomen-clothing-lingerie-bras",
-        # "cpwomen-clothing-lingerie-lingeriesets",
+        "cpwomen-clothing-bottoms-jeans",
+        "cpwomen-clothing-bottoms-joggers",
+        "cpwomen-clothing-bottoms-leggingsandjeggings",
+        "cpwomen-clothing-bottoms-pantsandchinos",
+        "cpwomen-clothing-bottoms-skirtsandshorts",
+        # Dresses
+        "cpwomen-clothing-dresses",
+        # Jumpsuits & Playsuits
+        "cpwomen-clothing-jumpsuitsandplaysuits",
+        # Lingerie
+        "cpwomen-clothing-lingerie-bras",
+        "cpwomen-clothing-lingerie-lingeriesets",
         "cpwomen-clothing-lingerie-panties",
         "cpwomen-clothing-lingerie-shapewear",
         # Maternity Wear

@@ -5,6 +5,8 @@
 @Desc:
 @Todo
 """
+import uuid
+from xml.dom.minidom import parseString
 
 import pyamf
 import requests
@@ -29,28 +31,28 @@ headers = {
 msg = messaging.RemotingMessage()
 
 
-def getRequestData():
+def getRequestData(paramStr, DSID='CD014AC1-D81F-A263-8F0B-F97E03B30147', UNO='', HNO=''):
     msg.headers = {
         "DSEndpoint": 'my-amf',
-        "DSId": "299864DE-9F1C-D3BD-9693-6347498D3CEF"
+        "DSId": DSID
     }
     msg.destination = "SMService"
     msg.operation = "ExecRPC"
-    msg.timeToLive = 0
-    msg.timestamp = 0
+    msg.timeToLive = '0'
+    msg.timestamp = '0'
     msg.source = None
-    msg.messageId = '45BFC871-AC7A-7099-A7C7-42995FE950C0'
+    msg.clientID = None
+    msg.messageId = str(uuid.uuid4()).upper()
+    info_type = 'getHouses' if UNO and HNO else 'getHnoAndUnos'
     msg.body = [
-                   "HouseTableServiceImpl",
-                   "getHouses",
-                   {
-                       "UNO": 1,
-                       "HNO": 8,
-                       "paramStr": "dfKr9U7lple67abd5wFvyI52vkx2j/vdwKNC2r1C2Tk4+pBjAwp+qT+NJmFaGXgbtQyK5/Glb/RJcJCg2ZIyJoIlxDrrlrur+sPFzKImAbhQoEmW9DnHnWsm0HvtCY4O3xhF0a+N5a/28vYK8DU/A/ZbcL+3PE8C26punMzcYnc=",
-                   }
-                   ,
-
-               ],
+        "HouseTableServiceImpl",
+        info_type,  # getHnoAndUnos -> 获取hno uno   getHouses -> 获取房屋列表
+        {
+            "UNO": UNO,
+            "HNO": HNO,
+            "paramStr": paramStr,
+        }
+    ]
 
     req = remoting.Request('null', body=[msg])
     env = remoting.Envelope(amfVersion=pyamf.AMF3)
@@ -63,16 +65,41 @@ def getRequestData():
 def getResponse(data):
     # 这个url一定是amf结尾的哦
     url = 'https://zw.cdzj.chengdu.gov.cn/DE-SMServerFx/messagebroker/amf'
-    response = requests.post(url, data, headers=headers)
+    response = requests.post(url, data, headers=headers, verify=False)
     return response.content
 
 
-def getContent(response):
+def getContent(response, pre_data=1):
     parse_info = remoting.decode(response)
+    if pre_data:
+        xml_data = parse_info.bodies[0][1].body.body.HOUSETABLETREE
 
-    # total_num = parse_info.bodies[0][1].body.body[3]
-    # info = parse_info.bodies[0][1].body.body[0]
-    return parse_info
+        all_info = parseString(xml_data).childNodes[0].childNodes
+        infos = []
+        for item in all_info:
+            d_info = {}
+            d_info['dong'] = item._attrs['label']._value
+            uint = item.childNodes
+            for u_item in uint:
+                d_info[u_item._attrs['label']._value] = {'uno': u_item._attrs['uno']._value,
+                                                         'hno': u_item._attrs['hno']._value}
+                # info[item._attrs['label']._value] = []
+            infos.append(d_info)
+
+        return infos
+    else:
+        return parse_info
 
 
-print(getContent(getResponse(getRequestData())))
+if __name__ == '__main__':
+    p = 'PBww38FqaYbB2WYT0z6La+galfqBFlGnutm9AeyIJHm0gQCi48fZHdbyr5iZ/sYq/xrPH55s5qYda8Dq0RecjUj2uNDtvp5ucK6yHogmxQq8qJapoXNEOlCrWQUxAJoojUI0yJ7QmJ9xjeRtEDiaTRASz48/5btYlz0hSGKkCGA='
+    pre_data = getContent(getResponse(getRequestData(p)))
+    for item in pre_data:
+        for key, value in item.items():
+            if isinstance(value, dict):
+                uno = value.get('uno')
+                hno = value.get('hno')
+                find_data = getContent(getResponse(getRequestData(p, UNO=uno, HNO=hno)), pre_data=0)
+                with open('-'.join([str(uuid.uuid4())  + item.get('dong') + key]) + '.txt', mode='w+', encoding='u8') as fp:
+                    fp.write(str(find_data))
+                print(pre_data)

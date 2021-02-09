@@ -27,11 +27,11 @@ from selenium.webdriver.support import expected_conditions as EC  # 等待条件
 from selenium.webdriver.support.ui import WebDriverWait  # 等待
 
 from common_tools.tools import get_abuyun_proxy, get_zhima_proxy
-from policy.common_tools.formatter import Formatter
-from parser import Parser
-from policy_module.configuration import ATTACH_RE
+from policy.formatter import Formatter
+from policy.parser import Parser
+from policy.policy_module.configuration import ATTACH_RE
 # from policy.config_v2 import sel_config
-from sel_config import config
+from policy.sel_config import config
 
 DEFAULT_HEADERS = "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.80 Safari/537.36"
 BASE_PATH = u'./files/'
