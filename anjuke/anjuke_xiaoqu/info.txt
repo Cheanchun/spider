@@ -537,55 +537,104 @@ var redirect_url = 'https://www.anjuke.com';
     
     </div>
     <!-- 侧边栏 -->
-    
-<div class="sidebar">
-    <div class="sidebar-mod sidebar-nav">
-        <a href="https://www.anjuke.com/tools/online/service ;?>" rel="nofollow" class="sid-nav" data-soj="right_sidebar" target="_blank">
-            <span class="iconfont iconfont22">&#xE247;</span>
-            <p>客服</p>
-            <em class="nav-arrow"></em>
-            <div class="sidebar-nav-hover">在线客服</div>
-        </a>
-        <a href="https://www.anjuke.com/propsale/" rel="nofollow" class="sid-nav" data-soj="right_sidebar" target="_blank">
-            <span class="iconfont iconfont22">&#xE089;</span>
-            <p>卖房</p>
-            <em class="nav-arrow"></em>
-            <div class="sidebar-nav-hover">房东卖房</div>
-        </a>
-        <a href="https://kfzx.anjuke.com/" rel="nofollow" class="sid-nav" data-soj="right_sidebar" target="_blank">
-            <span class="iconfont">&#xE087;</span>
-            <p>帮助</p>
-            <em class="nav-arrow"></em>
-            <div class="sidebar-nav-hover">使用帮助</div>
-        </a>
-        <a href="https://www.wenjuan.com/s/NbqIZr" id="sid_survey" class="sid-nav" rel="nofollow" target="_blank">
-            <span class="iconfont">&#xE088;</span>
-            <p>调研</p>
-            <em class="nav-arrow"></em>
-            <div class="sidebar-nav-hover">用户调研</div>
-        </a>
-        <a href="javascript:void(0);" class="sid-nav">
-            <span class="iconfont">&#xE090;</span>
-            <p>下载</p>
-            <em class="nav-arrow nav-sao"></em>
-            <div class="sidebar-nav-hover sidebar-sao">下载安居客APP</div>
-        </a>
-        <a href="https://about.anjuke.com/chanpin/" class="sid-nav" data-soj="right_sidebar" target="_blank">
-            <span class="iconfont">&#xE111;</span>
-            <p>推广</p>
-            <em class="nav-arrow"></em>
-            <div class="sidebar-nav-hover">推广咨询</div>
-        </a>
-    </div>
-</div>
-<div class="sidebar-mod sidebar-top">
-    <a href="javascript:void(0);" class="sid-nav">
-        <span class="iconfont">&#xE007;</span>
-        <em class="nav-arrow"></em>
-        <div class="sidebar-nav-hover">返回顶部</div>
-    </a>
-</div>
-
+    
+
+<div class="sidebar">
+
+    <div class="sidebar-mod sidebar-nav">
+
+        <a href="https://www.anjuke.com/tools/online/service ;?>" rel="nofollow" class="sid-nav" data-soj="right_sidebar" target="_blank">
+
+            <span class="iconfont iconfont22">&#xE247;</span>
+
+            <p>客服</p>
+
+            <em class="nav-arrow"></em>
+
+            <div class="sidebar-nav-hover">在线客服</div>
+
+        </a>
+
+        <a href="https://www.anjuke.com/propsale/" rel="nofollow" class="sid-nav" data-soj="right_sidebar" target="_blank">
+
+            <span class="iconfont iconfont22">&#xE089;</span>
+
+            <p>卖房</p>
+
+            <em class="nav-arrow"></em>
+
+            <div class="sidebar-nav-hover">房东卖房</div>
+
+        </a>
+
+        <a href="https://kfzx.anjuke.com/" rel="nofollow" class="sid-nav" data-soj="right_sidebar" target="_blank">
+
+            <span class="iconfont">&#xE087;</span>
+
+            <p>帮助</p>
+
+            <em class="nav-arrow"></em>
+
+            <div class="sidebar-nav-hover">使用帮助</div>
+
+        </a>
+
+        <a href="https://www.wenjuan.com/s/NbqIZr" id="sid_survey" class="sid-nav" rel="nofollow" target="_blank">
+
+            <span class="iconfont">&#xE088;</span>
+
+            <p>调研</p>
+
+            <em class="nav-arrow"></em>
+
+            <div class="sidebar-nav-hover">用户调研</div>
+
+        </a>
+
+        <a href="javascript:void(0);" class="sid-nav">
+
+            <span class="iconfont">&#xE090;</span>
+
+            <p>下载</p>
+
+            <em class="nav-arrow nav-sao"></em>
+
+            <div class="sidebar-nav-hover sidebar-sao">下载安居客APP</div>
+
+        </a>
+
+        <a href="https://about.anjuke.com/chanpin/" class="sid-nav" data-soj="right_sidebar" target="_blank">
+
+            <span class="iconfont">&#xE111;</span>
+
+            <p>推广</p>
+
+            <em class="nav-arrow"></em>
+
+            <div class="sidebar-nav-hover">推广咨询</div>
+
+        </a>
+
+    </div>
+
+</div>
+
+<div class="sidebar-mod sidebar-top">
+
+    <a href="javascript:void(0);" class="sid-nav">
+
+        <span class="iconfont">&#xE007;</span>
+
+        <em class="nav-arrow"></em>
+
+        <div class="sidebar-nav-hover">返回顶部</div>
+
+    </a>
+
+</div>
+
+
+
     
 
 <script type="text/javascript" crossorigin src="https://pages.anjukestatic.com/usersite/site/js/jquery/1.11.3/jquery-underscore.min.js"></script>
@@ -608,10 +657,14 @@ $(function(){
             }
         });
     });
-
-jQuery(function(){
-    new ajk.pc.sideBar();
-})
+
+
+jQuery(function(){
+
+    new ajk.pc.sideBar();
+
+})
+
 </script>
     <script>
     ;(function(){
@@ -665,7 +718,7 @@ jQuery(function(){
        c.query.push(["_setAccount","8"]);//固定参数
        (window.__zpSMConfig = window.__zpSMConfig||[]).push(c);
        var zp = document.createElement("script"); zp.type = "text/javascript"; zp.async = true;
-       zp.src = ("https:" == document.location.protocol ? "https:" : "http:") + "//cdn.zampda.net/s.js";
+       zp.src = ("https:" == document.location.protocol ? "https:" : "http:") + "//cdn.zampda.net/s.txt";
        var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(zp, s);
 }) (window.__zp_tag_params);
 </script>

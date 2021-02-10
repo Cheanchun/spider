@@ -3,13 +3,15 @@
 @Auth:CheanCC
 @Date:2020
 @Desc:
-@Todo
+@Todo  1.详情页解析;2.数据存储
+
 """
 import uuid
 from xml.dom.minidom import parseString
 
 import pyamf
 import requests
+from lxml import etree
 from pyamf import remoting
 from pyamf.flex import messaging
 
@@ -34,7 +36,7 @@ msg = messaging.RemotingMessage()
 def getRequestData(paramStr, DSID='CD014AC1-D81F-A263-8F0B-F97E03B30147', UNO='', HNO=''):
     msg.headers = {
         "DSEndpoint": 'my-amf',
-        "DSId": DSID
+        "DSId": str(uuid.uuid4()).upper()
     }
     msg.destination = "SMService"
     msg.operation = "ExecRPC"
@@ -65,7 +67,7 @@ def getRequestData(paramStr, DSID='CD014AC1-D81F-A263-8F0B-F97E03B30147', UNO=''
 def getResponse(data):
     # 这个url一定是amf结尾的哦
     url = 'https://zw.cdzj.chengdu.gov.cn/DE-SMServerFx/messagebroker/amf'
-    response = requests.post(url, data, headers=headers, verify=False)
+    response = requests.post(url, data, headers=headers)
     return response.content
 
 
@@ -91,15 +93,60 @@ def getContent(response, pre_data=1):
         return parse_info
 
 
+def get_list_page(page='1', __VIEWSTATE=''):
+    index_url = 'https://zw.cdzj.chengdu.gov.cn/SCXX/Default.aspx?action=ucSCXXShowNew2'
+    post_data = {
+        "_EVENTTARGET": 'ID_ucSCXXShowNew2$UcPager1$btnNewNext',
+        "__EVENTARGUMENT": __VIEWSTATE,
+        "__VIEWSTATE": '',
+        "__VIEWSTATEGENERATOR": "F35F1EA5",
+        "ID_ucSCXXShowNew2$txtpId": "",
+        "ID_ucSCXXShowNew2$txtpName": "",
+        "ID_ucSCXXShowNew2$ddlRegion": "",
+        "ID_ucSCXXShowNew2$txtTime1": "",
+        "ID_ucSCXXShowNew2$txtTime2": "",
+        "ID_ucSCXXShowNew2$UcPager1$txtPage": page,
+    }
+    resp = requests.post(index_url, headers=headers, json=post_data)
+    return resp
+
+
+def parse_list(resp):
+    list_data = []
+    html = etree.HTML(resp.text)
+    view_site = html.xpath('string(//input[@id="__VIEWSTATE"]/@value)')
+    trs = html.xpath("//table[@id='ID_ucSCXXShowNew2_gridView']//tr[position()>1]")
+    for tr in trs:
+        data = {}
+        keys = ['presell_no', 'project_name', 'area', 'project_addr', 'use', 'developer',
+                'presell_size', 'presell_date', 'agency', 'supervise_bank', 'remark']
+        for index, key in enumerate(keys):
+            data[key] = ''.join(tr.xpath('string(./td[{}])'.format(index + 1))).strip()
+        data['paramsStr'] = tr.xpath('string(./td[12]/a/@href)').split('param=')[-1]
+        list_data.append(data)
+    return list_data, view_site
+
+
+def save_data(data):
+    print(data)
+
+
 if __name__ == '__main__':
-    p = 'PBww38FqaYbB2WYT0z6La+galfqBFlGnutm9AeyIJHm0gQCi48fZHdbyr5iZ/sYq/xrPH55s5qYda8Dq0RecjUj2uNDtvp5ucK6yHogmxQq8qJapoXNEOlCrWQUxAJoojUI0yJ7QmJ9xjeRtEDiaTRASz48/5btYlz0hSGKkCGA='
-    pre_data = getContent(getResponse(getRequestData(p)))
-    for item in pre_data:
-        for key, value in item.items():
-            if isinstance(value, dict):
-                uno = value.get('uno')
-                hno = value.get('hno')
-                find_data = getContent(getResponse(getRequestData(p, UNO=uno, HNO=hno)), pre_data=0)
-                with open('-'.join([str(uuid.uuid4())  + item.get('dong') + key]) + '.txt', mode='w+', encoding='u8') as fp:
-                    fp.write(str(find_data))
-                print(pre_data)
+    resp = get_list_page()
+    list_datas, next_site = parse_list(resp)
+    for list_data in list_datas:
+        referer, p = ''.join('https://zw.cdzj.chengdu.gov.cn/DE-SMServerFx/FundateClient.swf?t=1&param={}'.format(
+            list_data.get('paramsStr'))), list_data.get('paramsStr')
+        # headers['Referer'] = referer
+        # p = 'fMH7U8PgP5xMfIEX+Sk3oyyP1Oi2G/lghl/vu+7W2uajk3La6BMhCz3C06s9K1D1NFHERan8zunGHy3fglSdkLd9oC/jmF2HrxdNj/Ec5f/hSjxobVICE/C7p5WLzlRLP+BWqxwWK5iBCLrq2/+ch4FRt/LhMvQ6mu14JCdmviY='
+        pre_data = getContent(getResponse(getRequestData(p)))
+        for item in pre_data:
+            for key, value in item.items():
+                if isinstance(value, dict):
+                    uno = value.get('uno')
+                    hno = value.get('hno')
+                    find_data = getContent(getResponse(getRequestData(p, UNO=uno, HNO=hno)), pre_data=0)
+                    with open('-'.join([str(uuid.uuid4()) + item.get('dong') + key]) + '.txt', mode='w+',
+                              encoding='u8') as fp:
+                        fp.write(str(find_data))
+                    print(find_data)
