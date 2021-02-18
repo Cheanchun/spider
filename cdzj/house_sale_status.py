@@ -6,6 +6,7 @@
 @Todo  1.详情页解析;2.数据存储
 
 """
+import pymongo
 import uuid
 from xml.dom.minidom import parseString
 
@@ -15,6 +16,10 @@ from lxml import etree
 from pyamf import remoting
 from pyamf.flex import messaging
 
+cnn = pymongo.MongoClient(host='47.105.54.129', port=27017)
+db = cnn.shixin
+db.authenticate('chean', 'scc57295729')
+col = db.house_satatus
 headers = {
     "Host": "zw.cdzj.chengdu.gov.cn",
     "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:81.0) Gecko/20100101 Firefox/81.0",
@@ -71,29 +76,57 @@ def getResponse(data):
     return response.content
 
 
-def getContent(response, pre_data=1):
+def getContent(response, pre_data=1, list_data={}):
     parse_info = remoting.decode(response)
-    if pre_data:
-        xml_data = parse_info.bodies[0][1].body.body.HOUSETABLETREE
+    try:
+        if pre_data:
+            xml_data = parse_info.bodies[0][1].body.body.HOUSETABLETREE
 
-        all_info = parseString(xml_data).childNodes[0].childNodes
-        infos = []
-        for item in all_info:
-            d_info = {}
-            d_info['dong'] = item._attrs['label']._value
-            uint = item.childNodes
-            for u_item in uint:
-                d_info[u_item._attrs['label']._value] = {'uno': u_item._attrs['uno']._value,
-                                                         'hno': u_item._attrs['hno']._value}
-                # info[item._attrs['label']._value] = []
-            infos.append(d_info)
+            all_info = parseString(xml_data).childNodes[0].childNodes
+            infos = []
+            for item in all_info:
+                d_info = {}
+                d_info['dong'] = item._attrs['label']._value
+                uint = item.childNodes
+                for u_item in uint:
+                    d_info[u_item._attrs['label']._value] = {'uno': u_item._attrs['uno']._value,
+                                                             'hno': u_item._attrs['hno']._value}
+                    # info[item._attrs['label']._value] = []
+                infos.append(d_info)
 
-        return infos
-    else:
-        return parse_info
+            return infos
+        else:
+            items = parse_info.bodies[0][1].body.body.HOUSEITEMLIST
+            for item in items:
+                final_data = {}
+                final_data["isMortgage"] = item.get('isMortgage')
+                final_data["isSealed"] = item.get('isSealed')
+                final_data["roomNo"] = item.get('roomNo')
+                final_data["isSealUp"] = item.get('isSealUp')
+                final_data["usage"] = item.get('usage')
+                final_data["typeHouse"] = item.get('typeHouse')
+                final_data["isDebted"] = item.get('isDebted')
+                final_data["listWaterPrice"] = item.get('listWaterPrice')
+                final_data["maxArea"] = item.get('maxArea')
+                final_data["tableid"] = item.get('tableid')
+                final_data["floorNo"] = item.get('floorNo')
+                final_data["minArea"] = item.get('minArea')
+                final_data["status"] = item.get('status')
+                final_data["totalArea"] = item.get('totalArea')
+                final_data.update(list_data)
+                final_data.pop('paramsStr')
+                save_data(final_data)
+            return parse_info
+    except Exception as e:
+        print(e)
+        return []
 
 
-def get_list_page(page='1', __VIEWSTATE=''):
+def save_data(data):
+    col.insert(data)
+
+
+def get_list_page(page=1, __VIEWSTATE=''):
     index_url = 'https://zw.cdzj.chengdu.gov.cn/SCXX/Default.aspx?action=ucSCXXShowNew2'
     post_data = {
         "_EVENTTARGET": 'ID_ucSCXXShowNew2$UcPager1$btnNewNext',
@@ -127,26 +160,24 @@ def parse_list(resp):
     return list_data, view_site
 
 
-def save_data(data):
-    print(data)
-
-
 if __name__ == '__main__':
-    resp = get_list_page()
-    list_datas, next_site = parse_list(resp)
-    for list_data in list_datas:
-        referer, p = ''.join('https://zw.cdzj.chengdu.gov.cn/DE-SMServerFx/FundateClient.swf?t=1&param={}'.format(
-            list_data.get('paramsStr'))), list_data.get('paramsStr')
-        # headers['Referer'] = referer
-        # p = 'fMH7U8PgP5xMfIEX+Sk3oyyP1Oi2G/lghl/vu+7W2uajk3La6BMhCz3C06s9K1D1NFHERan8zunGHy3fglSdkLd9oC/jmF2HrxdNj/Ec5f/hSjxobVICE/C7p5WLzlRLP+BWqxwWK5iBCLrq2/+ch4FRt/LhMvQ6mu14JCdmviY='
-        pre_data = getContent(getResponse(getRequestData(p)))
-        for item in pre_data:
-            for key, value in item.items():
-                if isinstance(value, dict):
-                    uno = value.get('uno')
-                    hno = value.get('hno')
-                    find_data = getContent(getResponse(getRequestData(p, UNO=uno, HNO=hno)), pre_data=0)
-                    with open('-'.join([str(uuid.uuid4()) + item.get('dong') + key]) + '.txt', mode='w+',
-                              encoding='u8') as fp:
-                        fp.write(str(find_data))
-                    print(find_data)
+    for page in range(1, 10):  # 1770
+        resp = get_list_page(page)
+        list_datas, next_site = parse_list(resp)
+        for list_data in list_datas:
+            referer, p = ''.join('https://zw.cdzj.chengdu.gov.cn/DE-SMServerFx/FundateClient.swf?t=1&param={}'.format(
+                list_data.get('paramsStr'))), list_data.get('paramsStr')
+            # headers['Referer'] = referer
+            # p = 'fMH7U8PgP5xMfIEX+Sk3oyyP1Oi2G/lghl/vu+7W2uajk3La6BMhCz3C06s9K1D1NFHERan8zunGHy3fglSdkLd9oC/jmF2HrxdNj/Ec5f/hSjxobVICE/C7p5WLzlRLP+BWqxwWK5iBCLrq2/+ch4FRt/LhMvQ6mu14JCdmviY='
+            pre_data = getContent(getResponse(getRequestData(p)))
+            for item in pre_data:
+                for key, value in item.items():
+                    if isinstance(value, dict):
+                        uno = value.get('uno')
+                        hno = value.get('hno')
+                        find_data = getContent(getResponse(getRequestData(p, UNO=uno, HNO=hno)), pre_data=0,
+                                               list_data=list_data)
+                        # with open('-'.join([str(uuid.uuid4()) + item.get('dong') + key]) + '.txt', mode='w+',
+                        #           encoding='u8') as fp:
+                        #     fp.write(str(find_data))
+                        # print(find_data)
