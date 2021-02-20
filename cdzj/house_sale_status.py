@@ -6,6 +6,9 @@
 @Todo  1.详情页解析;2.数据存储
 
 """
+import hashlib
+import json
+
 import pymongo
 import uuid
 from xml.dom.minidom import parseString
@@ -123,7 +126,12 @@ def getContent(response, pre_data=1, list_data={}):
 
 
 def save_data(data):
-    col.insert(data)
+    data_str = json.dumps(data, ensure_ascii=False).encode('u8')
+    m = hashlib.md5()
+    m.update(data_str)
+    _md5 = m.hexdigest()
+    data['_md5'] = _md5
+    col.update({"_md5": _md5}, data, True)
 
 
 def get_list_page(page=1, __VIEWSTATE=''):
@@ -161,7 +169,7 @@ def parse_list(resp):
 
 
 if __name__ == '__main__':
-    for page in range(1, 10):  # 1770
+    for page in range(3, 7):  # 1770
         resp = get_list_page(page)
         list_datas, next_site = parse_list(resp)
         for list_data in list_datas:
