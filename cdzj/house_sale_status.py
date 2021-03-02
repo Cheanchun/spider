@@ -3,7 +3,7 @@
 @Auth:CheanCC
 @Date:2020
 @Desc:
-@Todo  价格密文加密  -> 需要先替换 \n  base
+@Todo  价格密文加密  -> 需要先替换 \n  -> base64 decode ->  rsa 解密
 """
 import hashlib
 import json
@@ -18,11 +18,15 @@ import requests
 from lxml import etree
 from pyamf import remoting
 from pyamf.flex import messaging
-
+area = 'qingyang'
+area_cn = '青羊区'
+batch_size = 50000
 cnn = pymongo.MongoClient(host='47.105.54.129', port=27017)
 db = cnn.shixin
 db.authenticate('chean', 'scc57295729')
-col = db.house_satatus_gaoxin
+tail_index = 1
+col = db['house_satatus_{}_{}'.format(area, str(tail_index))]
+current_step = 0
 headers = {
     "Host": "zw.cdzj.chengdu.gov.cn",
     "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:81.0) Gecko/20100101 Firefox/81.0",
@@ -140,7 +144,7 @@ def getContent(response, pre_data=1, list_data={}):
                 final_data["floorNo"] = item.get('floorNo')
                 final_data["minArea"] = item.get('minArea')
                 final_data["status"] = item.get('status')
-                final_data["totalArea"] = item.get('totalArea')
+                final_data["totalArea"] = float(item.get('totalArea'))
                 final_data.update(list_data)
                 final_data.pop('paramsStr')
                 save_data(final_data)
@@ -150,7 +154,7 @@ def getContent(response, pre_data=1, list_data={}):
         return []
 
 
-def save_data(data):
+def save_data(data, ):
     temp = deepcopy(data)
     temp.pop('listWaterPrice')
     data_str = json.dumps(temp, ensure_ascii=False).encode('u8')
@@ -158,7 +162,13 @@ def save_data(data):
     m.update(data_str)
     _md5 = m.hexdigest()
     data['_md5'] = _md5
+    global col, tail_index, batch_size, current_step
+    if current_step >= batch_size:
+        col = db['house_satatus_{}_{}'.format(area, str(tail_index))]
+        current_step = 0
+        tail_index += 1
     col.update({"_md5": _md5}, data, True)
+    current_step += 1
 
 
 def get_list_page(page=1, __VIEWSTATE=''):
@@ -171,7 +181,7 @@ def get_list_page(page=1, __VIEWSTATE=''):
         "__VIEWSTATEGENERATOR": "F35F1EA5",
         "ID_ucSCXXShowNew2$txtpId": "",
         "ID_ucSCXXShowNew2$txtpName": "",
-        "ID_ucSCXXShowNew2$ddlRegion": "高新区",
+        "ID_ucSCXXShowNew2$ddlRegion": area_cn,
         "ID_ucSCXXShowNew2$txtTime1": "",
         "ID_ucSCXXShowNew2$txtTime2": "",
         "ID_ucSCXXShowNew2$UcPager1$txtPage": str(page),
@@ -208,7 +218,7 @@ def parse_list(resp):
 
 if __name__ == '__main__':
     vs = ''
-    for page in range(0, 118):  # 1770
+    for page in range(0, 82):  # 1770
         resp = get_list_page(page, vs)
         list_datas, vs = parse_list(resp)
         for list_data in list_datas:
@@ -225,7 +235,6 @@ if __name__ == '__main__':
                         hno = value.get('hno')
                         find_data = getContent(getResponse(getRequestData(p, UNO=uno, HNO=hno)), pre_data=0,
                                                list_data=list_data)
-
 
 """
 ----RSA 解密价格  listWaterPrice
@@ -279,7 +288,6 @@ package c
 
 
 """
-
 
 """
 --- base64 编码
