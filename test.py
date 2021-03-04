@@ -51,6 +51,67 @@ def calculate(expression):
     pass
 
 
+# 用列表实现队列
+class ListQueue(object):
+    def __init__(self):
+        self.items = []
+
+    def is_empty(self):
+        return bool(self.items)
+
+    def enqueue(self, item):
+        self.items.append(item)
+
+    def dequeue(self):
+        if not self.is_empty():
+            return self.items.pop(0)
+        return None
+
+    def size(self):
+        return len(self.items)
+
+
+# 用链表实现队列
+class LinkQueue(object):
+    def __init__(self, max_size=10):
+        self.max_size = max_size
+        self.current_size = 0
+        self.head = None
+        self.front = 0
+        self.rear = 0
+
+    def is_empty(self):
+        if self.rear - self.front == 0:
+            return False
+        return True
+
+    def enqueue(self, node):
+        if not self.front:
+            self.head = node
+            self.rear += 1
+        else:
+            current_node = self.head
+            for _ in range(self.rear):
+                current_node = current_node.next
+                if current_node.next is None:
+                    current_node.next = node
+            self.rear += 1
+
+    def dequeue(self):
+        if not self.is_empty():
+            re_node = self.head
+            self.head = self.head.next
+            self.front += 1
+            return re_node
+        return None
+
+    def size(self):
+        pass
+
+
+# 用链表实现环队列
+
+
 if __name__ == '__main__':
     # t = ['a', 'b', 'c', 'd']
     # stack = Stack()
