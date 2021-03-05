@@ -19,16 +19,16 @@ from lxml import etree
 from pyamf import remoting
 from pyamf.flex import messaging
 
-area = 'shuangliuqu'
-area_cn = '双流区'
-total_page = 114
+area = 'gaoxin'
+area_cn = '高新区'
+total_page = 118
 batch_size = 50000
 
 cnn = pymongo.MongoClient(host='47.105.54.129', port=27017)
 db = cnn.shixin
 db.authenticate('chean', 'scc57295729')
 tail_index = 1
-col = db['house_satatus_{}_{}'.format(area, str(tail_index))]
+col = db['house_satatus_{}'.format(area)]
 current_step = 0
 headers = {
     "Host": "zw.cdzj.chengdu.gov.cn",
@@ -165,13 +165,13 @@ def save_data(data, ):
     m.update(data_str)
     _md5 = m.hexdigest()
     data['_md5'] = _md5
-    global col, tail_index, batch_size, current_step
-    if current_step >= batch_size:
-        tail_index += 1
-        col = db['house_satatus_{}_{}'.format(area, str(tail_index))]
-        current_step = 0
+    # global col, tail_index, batch_size, current_step
+    # if current_step >= batch_size:
+    #     tail_index += 1
+    #     col = db['house_satatus_{}_{}'.format(area, str(tail_index))]
+    #     current_step = 0
     col.update({"_md5": _md5}, data, True)
-    current_step += 1
+    # current_step += 1
 
 
 def get_list_page(page=1, __VIEWSTATE=''):
