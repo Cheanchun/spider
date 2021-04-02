@@ -1,0 +1,9 @@
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p1   10G  4.2G  5.9G  42% /
+devtmpfs         16G     0   16G   0% /dev
+tmpfs            16G     0   16G   0% /dev/shm
+tmpfs            16G  1.5G   14G  10% /run
+tmpfs            16G     0   16G   0% /sys/fs/cgroup
+tmpfs           3.1G     0  3.1G   0% /run/user/1000
+/dev/nvme1n1    500G  5.0G  495G   1% /home/work/data
+tmpfs           3.1G     0  3.1G   0% /run/user/0

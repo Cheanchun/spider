@@ -37,10 +37,9 @@ ALLOW_PARAMETER = {
 }
 
 # 芝麻代理
-ZHIMA_PROXY_URL = 'http://http.tiqu.alicdns.com/getip3?num=1&type=1&pro=&city=0&yys=0&port=1&pack=95545&ts=0&ys=0&cs=0&lb=1&sb=0&pb=45&mr=1&regions=&gm=4'
+# ZHIMA_PROXY_URL = 'http://http.tiqu.alicdns.com/getip3?num=1&type=1&pro=&city=0&yys=0&port=1&pack=35251&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions='
 PROXY_GET_URL = 'http://55.24.8.101:8099/api/get_proxy'
 PROXY_PUT_URL = 'http://55.24.8.101:8099/api/put_proxy'
-WHITE_URL = 'http://wapi.http.cnapi.cc/index/index/save_white?neek=78719&appkey=4dba885625e07fce77a32e2c2423bada&white='
 
 # 阿布云代理
 ABUYUN_PROXY = {

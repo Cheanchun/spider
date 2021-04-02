@@ -6,7 +6,6 @@
 @file: common_requests.py
 @usage: 公共的requests，用于下载页面
 """
-import copy
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -42,9 +41,14 @@ class CommonRequests(object):
         self.timeout = timeout or config.DEFAULT_TIMEOUT
         self.headers = headers or config.DEFAULT_HEADERS
 
-        if proxy_type and proxy_type not in PROXY_METHOD and proxy_type != 'random':
-            raise ValueError('proxy type value error.')
         self.proxy_type = proxy_type
+        if proxy_type == 'random':
+            proxy_type = random.choice(PROXY_METHOD.keys())
+        if proxy_type and proxy_type not in PROXY_METHOD:
+            raise ValueError('proxy type value error.')
+        self.proxy = None
+        self.get_proxy = PROXY_METHOD.get(proxy_type, None)
+        self.temp_proxy_type = proxy_type  # 用于判断本次类型不等于上次类型时，保证self.proxy被重置
 
         self.is_need_session = is_need_session
         self.session = None
@@ -130,6 +134,9 @@ class CommonRequests(object):
         if 'proxy_type' in parameters:
             proxy_type = parameters.pop('proxy_type')
 
+        # 用来还原至初始化时的代理
+        ori_get_proxy = self.get_proxy
+
         # 当用户传了proxy_type时，若为random，随机取
         # 当用户没有传proxy_type时，使用初始化的self.proxy_type，若为random，随机取
         if proxy_type:
@@ -140,22 +147,28 @@ class CommonRequests(object):
                 proxy_type = random.choice(PROXY_METHOD.keys())
             else:
                 proxy_type = self.proxy_type
-        proxy = None
-        get_proxy = PROXY_METHOD.get(proxy_type, None)
+        # 用于判断本次类型不等于上次类型时，保证self.proxy被重置，相等时不必再次获取代理，可以减少对其接口的访问次数，例如芝麻代理池
+        if self.temp_proxy_type != proxy_type:
+            self.proxy = None
+        self.temp_proxy_type = proxy_type
+        self.get_proxy = PROXY_METHOD.get(proxy_type, None)
 
-        if get_proxy is not None:  # and self.proxy is None:
-            proxy = get_proxy()
-        parameters['proxies'] = proxy
+        if self.get_proxy is not None and self.proxy is None:
+            self.proxy = self.get_proxy()
+        parameters['proxies'] = self.proxy
+
+        # 当self.proxy_type为random时，不需要还原
+        if self.proxy_type != 'random':
+            self.get_proxy = ori_get_proxy
 
         try_times = 1
         while try_times <= max_try_times:
             err_msg = ''
-            if try_times == max_try_times:
+            if try_times == 3:
                 proxy_type = 'zhima'
-                proxy = PROXY_METHOD.get(proxy_type)()
-            if proxy_type == 'zhima' and 'https' in proxy:
-                proxy.pop('https')
-            parameters['proxies'] = proxy
+                parameters['proxies'] = PROXY_METHOD.get(proxy_type)()
+            if proxy_type == 'zhima' and 'https' in parameters['proxies']:
+                parameters['proxies'].pop('https')
             try:
                 if self.is_need_session is True:
                     response = self.session.request(method=method, url=url, **parameters)
@@ -167,12 +180,12 @@ class CommonRequests(object):
                     continue
                 elif response.status_code / 100 == 2:
                     return response
-                elif response.status_code in (403, 503, 302):
-                    if get_proxy is not None:
+                elif response.status_code in (403, 503):
+                    if self.get_proxy is not None:
                         if proxy_type == 'zhima' or try_times == 3:
                             # 当代理是芝麻时，需要将failed_times加一
                             tools.put_zhima_proxy(proxy=parameters['proxies'], is_failed=True)
-                        parameters['proxies'] = self._switch_proxy(proxy_type=proxy_type, proxy=parameters['proxies'])
+                        parameters['proxies'] = self._switch_proxy(proxy_type=proxy_type)
 
                 if try_times >= max_try_times:
                     err_msg = '{}'.format('http code: {}'.format(response.status_code))
@@ -188,8 +201,8 @@ class CommonRequests(object):
                     # 当代理是芝麻时，需要将failed_times加一
                     tools.put_zhima_proxy(proxy=parameters['proxies'], is_failed=True)
 
-                if get_proxy is not None:
-                    parameters['proxies'] = self._switch_proxy(proxy_type=proxy_type, proxy=parameters['proxies'])
+                if self.get_proxy is not None:
+                    parameters['proxies'] = self._switch_proxy(proxy_type=proxy_type)
                 err_msg = '{}'.format(ex)
             finally:
                 if sleep_time:
@@ -199,26 +212,17 @@ class CommonRequests(object):
             try_times += 1
         return None
 
-    def _switch_proxy(self, proxy_type, proxy):
+    def _switch_proxy(self, proxy_type):
         """
         切换代理
         :param: proxy_type
-        :param: proxy
         :return:
         """
-        try_times = 1
-        while try_times <= 3:
-            try:
-                if proxy_type in ['abuyun', 'dobel']:
-                    # 阿布云、多贝云等隧道需要手动切换IP
-                    tools.switch_ip(proxy=proxy)
-                proxy = PROXY_METHOD.get(proxy_type)()
-                return proxy
-            except Exception as ex:
-                if try_times >= 3:
-                    raise exception.GetProxyError(ex)
-            finally:
-                try_times += 1
+        self.proxy = self.get_proxy()
+        if proxy_type in ['abuyun', 'dobel']:
+            # 阿布云、多贝云等隧道需要手动切换IP
+            tools.switch_ip(proxy=self.proxy)
+        return self.proxy
 
 
 if __name__ == '__main__':

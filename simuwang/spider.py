@@ -5,6 +5,11 @@
 @Desc:
 @Todo
 """
+import json
+import time
+
+import pymongo
+import redis
 import requests
 from lxml import etree
 
@@ -26,6 +31,11 @@ headers = {
     "Sec-Fetch-Site": "same-site",
     "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36",
 }
+
+user_redis = redis.Redis(host='47.105.54.129', port=6388, password='admin')
+cnn = pymongo.MongoClient(host='47.105.54.129', port=27017)
+db = cnn.shixin
+db.authenticate("chean", "scc57295729")
 
 
 def data_request(_id, pn):
@@ -71,49 +81,56 @@ def get_css(url):
     return resp.json()
 
 
-def convert_num(css_num, p_code):
-    show_map = {'HF00005V8X': {
-        'e722d0': True,
-        'e7f624': True,
-        'e77ba4': False,
-        'e7ad05': False,
-        'e7d86a': True,
-        'e7f7af': True,
-        'e752c4': False
-    },
-        'HF0000122L': {
-
-        }
-    }
-    item_map = show_map.get(p_code)
+def convert_num(css_num, item_map):
     return item_map.get(css_num)
+
+
+def convert(h):
+    h_class = h.xpath('//*/@class')
+    values = h.xpath('//text()')
+    s = ''
+    for c, v, in zip(h_class, values):
+        if convert_num(c, item_map):
+            s += str(v)
+    return s
 
 
 if __name__ == '__main__':
     with open('t.txt', mode='r', encoding='u8') as fp:
         content = fp.readline().strip()
+        cnt = 0
         while content:
-            # print(content.strip())
+            time.sleep(10)
+
+            cnt += 1
+            page = 1
             p_name = content.split()[0].strip()
             p_url = content.split()[1].strip()
             p_code = p_url.rsplit('/')[-1].split('.')[0]
-            print('|'.join([p_name, p_url, p_code]))
+            col = db['simuwang']
+            print('[当前进度：{cnt}/48]-[产品名称：{p_name}]-[抓取地址:{url}]'.format(cnt=cnt, p_name=p_name, url=p_url))
             content = fp.readline().strip()
-            res_data = data_request('HF00005V8X', 1).get('data')
+            res_data = data_request(p_code, page).get('data')
             pager = res_data.get('pager')
             data_list = res_data.get('data')
+            css_style = user_redis.get(p_code)
+            item_map = json.loads(css_style, encoding='u8')
             while data_list:
                 for item in data_list:
+                    final_data = {'product_name': p_name, 'url': p_url}
                     date = item.get('pd')
-                    value_html = item.get('cnw')
-                    html = etree.HTML(value_html)
-                    h_class = html.xpath('//*/@class')
-                    values = html.xpath('//text()')
-                    s = ''
-                    for c, v, in zip(h_class, values):
-                        if convert_num(c,p_code):
-                            s += str(v)
-                    total_pure_value = s
-                    print(date, s)
-                    res_data = data_request('HF00005V8X', 2).get('data')
-                    data_list = res_data.get('data')
+                    value_html_1 = etree.HTML(item.get('n'))
+                    value_html_2 = etree.HTML(item.get('cnw'))
+                    value_html_3 = etree.HTML(item.get('cn'))
+                    total_pure_value = convert(value_html_1)
+                    final_data['value_date'] = item.get('pd')
+                    final_data['pure_value'] = convert(value_html_1)
+                    final_data['total_value(yes)'] = convert(value_html_3)
+                    final_data['total_value(no)'] = convert(value_html_2)
+                    final_data['delta'] = item.get('pc') + '%'
+                    col.insert(final_data)
+                time.sleep(2)
+                print('[正在抓取第--{}--页]'.format(page))
+                page += 1
+                res_data = data_request(p_code, page).get('data')
+                data_list = res_data.get('data')

@@ -7,6 +7,7 @@
 @usage: 工具方法，随机睡眠, 去除特殊字符等
 """
 import sys
+reload(sys)
 sys.setdefaultencoding('utf-8')
 sys.path.append('/home/work/data/crawler3/crawler3_py/develop_jobs')
 
@@ -23,11 +24,10 @@ import requests
 from common_tools import config, exception
 
 
-DATE_PATTERN = re.compile('(\d{4}[-/年.]\d{1,2}[-/月.]\d{1,2}日?)')
-TIME_PATTERN = re.compile('(\d{1,2}[时|:]\d{1,2}[分|:]?(\d{1,2}秒?)?)')
+DATE_PATTERN = re.compile(ur'(\d{4}[-/年]\d{1,2}[-/月]\d{1,2}日?)')
+TIME_PATTERN = re.compile(ur'(\d{1,2}[时|:]\d{1,2}[分|:]?(\d{1,2}秒?)?)')
 SECOND_PATTERN = re.compile(r'\d{1,2}:\d{1,2}:\d{1,2}')
 MINUTE_PATTERN = re.compile(r'\d{1,2}:\d{1,2}')
-IP_PATTERN = re.compile(r'(\d+\.\d+\.\d+\.\d+)')
 
 
 def random_sleep_time(start=1, stop=5):
@@ -120,38 +120,6 @@ def put_zhima_proxy(proxy, is_failed=False):
             raise exception.PutProxyError('proxy pool error, please check')
     except Exception as ex:
         raise exception.PutProxyError('put zhima proxy error, {}'.format(ex))
-
-
-def get_zhima_ip(num=1):
-    """
-    从芝麻站点获取IP
-    :param num:
-    :return:
-    """
-    try:
-        proxy_url = re.sub(r'num=\d+', r'num={}'.format(num), config.ZHIMA_PROXY_URL)
-        response = requests.get(url=proxy_url, headers=config.DEFAULT_HEADERS)
-        if '"success":false' not in response.text:
-            temps = response.text.strip('\r\n').split('\r\n')
-            ip_list = []
-            for temp in temps:
-                proxy = {}
-                proxy['http'] = 'http://{}'.format(temp)
-                proxy['https'] = 'https://{}'.format(temp)
-                ip_list.append(proxy)
-            return ip_list
-        raise exception.GetProxyError('get zhima proxy error, {}'.format(response.text))
-    except Exception as ex:
-        raise exception.GetProxyError('get zhima proxy error, {}'.format(ex))
-
-
-def add_zhima_white(response):
-    try:
-        ip_addr = ''.join(IP_PATTERN.findall(response.text))
-        white_url = config.WHITE_URL + ip_addr
-        requests.get(url=white_url, headers=config.DEFAULT_HEADERS)
-    except Exception as ex:
-        raise exception.GetProxyError('requests add zhima white error, {}'.format(ex))
 
 
 def get_abuyun_proxy():
@@ -283,7 +251,7 @@ def clean_time(time_str):
     date_str = date_temp[0]
     time_str = time_temp[0][0]
 
-    date_str = date_str.replace(u'年', '-').replace(u'月', '-').replace(u'日', '').replace(r'/', '-').replace(r'.', '-')
+    date_str = date_str.replace(u'年', '-').replace(u'月', '-').replace(u'日', '').replace(r'/', '-')
     time_str = time_str.replace(u'时', ':').replace(u'分', ':').replace(u'秒', '')
     if date_str.endswith('-'):
         date_str = date_str[:-1]
