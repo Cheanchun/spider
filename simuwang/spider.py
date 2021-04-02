@@ -108,7 +108,7 @@ if __name__ == '__main__':
             p_url = content.split()[1].strip()
             p_code = p_url.rsplit('/')[-1].split('.')[0]
             col = db['simuwang']
-            print('[当前进度：{cnt}/48]-[产品名称：{p_name}]-[抓取地址:{url}]'.format(cnt=cnt, p_name=p_name, url=p_url))
+            print('[当前进度：{cnt}/16]-[产品名称：{p_name}]-[抓取地址:{url}]'.format(cnt=cnt, p_name=p_name, url=p_url))
             content = fp.readline().strip()
             res_data = data_request(p_code, page).get('data')
             pager = res_data.get('pager')
